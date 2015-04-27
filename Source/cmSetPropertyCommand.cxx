@@ -61,12 +61,17 @@ bool cmSetPropertyCommand
     {
     scope = cmProperty::CACHE;
     }
+  else if(*arg == "INSTALL")
+    {
+    scope = cmProperty::INSTALL;
+    }
   else
     {
-    cmOStringStream e;
+    std::ostringstream e;
     e << "given invalid scope " << *arg << ".  "
-      << "Valid scopes are GLOBAL, DIRECTORY, TARGET, SOURCE, TEST, CACHE.";
-    this->SetError(e.str().c_str());
+      << "Valid scopes are GLOBAL, DIRECTORY, "
+        "TARGET, SOURCE, TEST, CACHE, INSTALL.";
+    this->SetError(e.str());
     return false;
     }
 
@@ -112,9 +117,9 @@ bool cmSetPropertyCommand
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "given invalid argument \"" << *arg << "\".";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -135,6 +140,7 @@ bool cmSetPropertyCommand
     case cmProperty::SOURCE_FILE: return this->HandleSourceMode();
     case cmProperty::TEST:        return this->HandleTestMode();
     case cmProperty::CACHE:       return this->HandleCacheMode();
+    case cmProperty::INSTALL:     return this->HandleInstallMode();
 
     case cmProperty::VARIABLE:
     case cmProperty::CACHED_VARIABLE:
@@ -198,12 +204,12 @@ bool cmSetPropertyCommand::HandleDirectoryMode()
       }
 
     // The local generators are associated with collapsed paths.
-    dir = cmSystemTools::CollapseFullPath(dir.c_str());
+    dir = cmSystemTools::CollapseFullPath(dir);
 
     // Lookup the generator.
     if(cmLocalGenerator* lg =
        (this->Makefile->GetLocalGenerator()
-        ->GetGlobalGenerator()->FindLocalGenerator(dir.c_str())))
+        ->GetGlobalGenerator()->FindLocalGenerator(dir)))
       {
       // Use the makefile for the directory found.
       mf = lg->GetMakefile();
@@ -241,7 +247,7 @@ bool cmSetPropertyCommand::HandleDirectoryMode()
 //----------------------------------------------------------------------------
 bool cmSetPropertyCommand::HandleTargetMode()
 {
-  for(std::set<cmStdString>::const_iterator ni = this->Names.begin();
+  for(std::set<std::string>::const_iterator ni = this->Names.begin();
       ni != this->Names.end(); ++ni)
     {
     if (this->Makefile->IsAlias(*ni))
@@ -259,10 +265,10 @@ bool cmSetPropertyCommand::HandleTargetMode()
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "could not find TARGET " << *ni
         << ".  Perhaps it has not yet been created.";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -297,11 +303,11 @@ bool cmSetPropertyCommand::HandleTarget(cmTarget* target)
 //----------------------------------------------------------------------------
 bool cmSetPropertyCommand::HandleSourceMode()
 {
-  for(std::set<cmStdString>::const_iterator ni = this->Names.begin();
+  for(std::set<std::string>::const_iterator ni = this->Names.begin();
       ni != this->Names.end(); ++ni)
     {
     // Get the source file.
-    if(cmSourceFile* sf = this->Makefile->GetOrCreateSource(ni->c_str()))
+    if(cmSourceFile* sf = this->Makefile->GetOrCreateSource(*ni))
       {
       if(!this->HandleSource(sf))
         {
@@ -310,9 +316,9 @@ bool cmSetPropertyCommand::HandleSourceMode()
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "given SOURCE name that could not be found or created: " << *ni;
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -345,13 +351,13 @@ bool cmSetPropertyCommand::HandleSource(cmSourceFile* sf)
 bool cmSetPropertyCommand::HandleTestMode()
 {
   // Look for tests with all names given.
-  std::set<cmStdString>::iterator next;
-  for(std::set<cmStdString>::iterator ni = this->Names.begin();
+  std::set<std::string>::iterator next;
+  for(std::set<std::string>::iterator ni = this->Names.begin();
       ni != this->Names.end(); ni = next)
     {
     next = ni;
     ++next;
-    if(cmTest* test = this->Makefile->GetTest(ni->c_str()))
+    if(cmTest* test = this->Makefile->GetTest(*ni))
       {
       if(this->HandleTest(test))
         {
@@ -367,14 +373,14 @@ bool cmSetPropertyCommand::HandleTestMode()
   // Names that are still left were not found.
   if(!this->Names.empty())
     {
-    cmOStringStream e;
+    std::ostringstream e;
     e << "given TEST names that do not exist:\n";
-    for(std::set<cmStdString>::const_iterator ni = this->Names.begin();
+    for(std::set<std::string>::const_iterator ni = this->Names.begin();
         ni != this->Names.end(); ++ni)
       {
       e << "  " << *ni << "\n";
       }
-    this->SetError(e.str().c_str());
+    this->SetError(e.str());
     return false;
     }
   return true;
@@ -411,10 +417,10 @@ bool cmSetPropertyCommand::HandleCacheMode()
        !cmSystemTools::IsOn(this->PropertyValue.c_str()) &&
        !cmSystemTools::IsOff(this->PropertyValue.c_str()))
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "given non-boolean value \"" << this->PropertyValue
         << "\" for CACHE property \"ADVANCED\".  ";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -422,9 +428,9 @@ bool cmSetPropertyCommand::HandleCacheMode()
     {
     if(!cmCacheManager::IsType(this->PropertyValue.c_str()))
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "given invalid CACHE entry TYPE \"" << this->PropertyValue << "\"";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -432,15 +438,15 @@ bool cmSetPropertyCommand::HandleCacheMode()
           this->PropertyName != "STRINGS" &&
           this->PropertyName != "VALUE")
     {
-    cmOStringStream e;
+    std::ostringstream e;
     e << "given invalid CACHE property " << this->PropertyName << ".  "
       << "Settable CACHE properties are: "
       << "ADVANCED, HELPSTRING, STRINGS, TYPE, and VALUE.";
-    this->SetError(e.str().c_str());
+    this->SetError(e.str());
     return false;
     }
 
-  for(std::set<cmStdString>::const_iterator ni = this->Names.begin();
+  for(std::set<std::string>::const_iterator ni = this->Names.begin();
       ni != this->Names.end(); ++ni)
     {
     // Get the source file.
@@ -457,10 +463,10 @@ bool cmSetPropertyCommand::HandleCacheMode()
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "could not find CACHE variable " << *ni
         << ".  Perhaps it has not yet been created.";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -486,5 +492,56 @@ bool cmSetPropertyCommand::HandleCacheEntry(cmCacheManager::CacheIterator& it)
     it.SetProperty(name, value);
     }
 
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool cmSetPropertyCommand::HandleInstallMode()
+{
+  cmake* cm = this->Makefile->GetCMakeInstance();
+
+  for(std::set<std::string>::const_iterator i = this->Names.begin();
+      i != this->Names.end(); ++i)
+    {
+    if(cmInstalledFile* file = cm->GetOrCreateInstalledFile(
+      this->Makefile, *i))
+      {
+      if(!this->HandleInstall(file))
+        {
+        return false;
+        }
+      }
+    else
+      {
+      std::ostringstream e;
+      e << "given INSTALL name that could not be found or created: " << *i;
+      this->SetError(e.str());
+      return false;
+      }
+    }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool cmSetPropertyCommand::HandleInstall(cmInstalledFile* file)
+{
+  // Set or append the property.
+  std::string const& name = this->PropertyName;
+
+  cmMakefile* mf = this->Makefile;
+
+  const char *value = this->PropertyValue.c_str();
+  if (this->Remove)
+    {
+    file->RemoveProperty(name);
+    }
+  else if(this->AppendMode)
+    {
+    file->AppendProperty(mf, name, value, this->AppendAsString);
+    }
+  else
+    {
+    file->SetProperty(mf, name, value);
+    }
   return true;
 }

@@ -20,11 +20,11 @@ class cmGlobalVisualStudio12Generator:
   public cmGlobalVisualStudio11Generator
 {
 public:
-  cmGlobalVisualStudio12Generator(const char* name,
-    const char* platformName, const char* additionalPlatformDefinition);
+  cmGlobalVisualStudio12Generator(const std::string& name,
+    const std::string& platformName);
   static cmGlobalGeneratorFactory* NewFactory();
 
-  virtual bool MatchesGeneratorName(const char* name) const;
+  virtual bool MatchesGeneratorName(const std::string& name) const;
 
   virtual void WriteSLNHeader(std::ostream& fout);
 
@@ -39,6 +39,16 @@ public:
   //version number
   virtual const char* GetToolsVersion() { return "12.0"; }
 protected:
+  virtual bool InitializeWindowsPhone(cmMakefile* mf);
+  virtual bool InitializeWindowsStore(cmMakefile* mf);
+  virtual bool SelectWindowsPhoneToolset(std::string& toolset) const;
+  virtual bool SelectWindowsStoreToolset(std::string& toolset) const;
+
+  // These aren't virtual because we need to check if the selected version
+  // of the toolset is installed
+  bool IsWindowsDesktopToolsetInstalled() const;
+  bool IsWindowsPhoneToolsetInstalled() const;
+  bool IsWindowsStoreToolsetInstalled() const;
   virtual const char* GetIDEVersion() { return "12.0"; }
 private:
   class Factory;

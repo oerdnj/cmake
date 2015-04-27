@@ -31,7 +31,7 @@ bool cmSiteNameCommand
   paths.push_back("/usr/local/bin");
 
   const char* cacheValue
-    = this->Makefile->GetDefinition(args[0].c_str());
+    = this->Makefile->GetDefinition(args[0]);
   if(cacheValue)
     {
     return true;
@@ -66,7 +66,7 @@ bool cmSiteNameCommand
       &host, 0, 0, cmSystemTools::OUTPUT_NONE);
 
     // got the hostname
-    if (host.length())
+    if (!host.empty())
       {
       // remove any white space from the host name
       std::string hostRegExp = "[ \t\n\r]*([^\t\n\r ]*)[ \t\n\r]*";
@@ -77,7 +77,7 @@ bool cmSiteNameCommand
         host = hostReg.match(1);
         }
 
-      if(host.length())
+      if(!host.empty())
         {
         siteName = host;
         }
@@ -85,7 +85,7 @@ bool cmSiteNameCommand
     }
 #endif
   this->Makefile->
-    AddCacheDefinition(args[0].c_str(),
+    AddCacheDefinition(args[0],
                        siteName.c_str(),
                        "Name of the computer/site where compile is being run",
                        cmCacheManager::STRING);

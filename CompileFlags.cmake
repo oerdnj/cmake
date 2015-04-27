@@ -16,11 +16,8 @@
 if(CMAKE_GENERATOR MATCHES "Visual Studio 7")
   set(CMAKE_SKIP_COMPATIBILITY_TESTS 1)
 endif()
-if(CMAKE_GENERATOR MATCHES "Visual Studio 6")
-  set(CMAKE_SKIP_COMPATIBILITY_TESTS 1)
-endif()
 
-if(WIN32 AND "${CMAKE_C_COMPILER_ID}" MATCHES "^(Intel)$")
+if(WIN32 AND CMAKE_C_COMPILER_ID STREQUAL "Intel")
   set(_INTEL_WINDOWS 1)
 endif()
 
@@ -34,20 +31,20 @@ else()
 endif()
 
 #silence duplicate symbol warnings on AIX
-if(CMAKE_SYSTEM MATCHES "AIX.*")
+if(CMAKE_SYSTEM_NAME MATCHES "AIX")
   if(NOT CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -bhalt:5 ")
   endif()
 endif()
 
-if(CMAKE_SYSTEM MATCHES "IRIX.*")
+if(CMAKE_SYSTEM_NAME MATCHES "IRIX")
   if(NOT CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-woff84 -no_auto_include")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-woff15")
   endif()
 endif()
 
-if(CMAKE_SYSTEM MATCHES "OSF1-V.*")
+if(CMAKE_SYSTEM MATCHES "OSF1-V")
   if(NOT CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -timplicit_local -no_implicit_include ")
   endif()
@@ -65,6 +62,24 @@ if(CMAKE_SYSTEM_NAME MATCHES "HP-UX" AND CMAKE_CXX_COMPILER_ID MATCHES "HP")
   endif()
 endif()
 
+# Workaround for short jump tables on PA-RISC
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^parisc")
+  if(CMAKE_COMPILER_IS_GNUC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mlong-calls")
+  endif()
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mlong-calls")
+  endif()
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL SunPro)
+  if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.13)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++03")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -library=stlport4")
+  endif()
+endif()
+
 # use the ansi CXX compile flag for building cmake
 if (CMAKE_ANSI_CXXFLAGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_ANSI_CXXFLAGS}")
@@ -73,11 +88,3 @@ endif ()
 if (CMAKE_ANSI_CFLAGS)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_ANSI_CFLAGS}")
 endif ()
-
-# avoid binutils problem with large binaries, e.g. when building CMake in debug mode
-# See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=50230
-if (CMAKE_SYSTEM_NAME STREQUAL Linux AND CMAKE_SYSTEM_PROCESSOR STREQUAL parisc)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--unique=.text._*")
-endif ()
-
-include (${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityCXX.cmake)

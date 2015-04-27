@@ -49,15 +49,30 @@ public:
   /**
    * The name of the command as specified in CMakeList.txt.
    */
-  virtual const char* GetName() const { return "find_package";}
+  virtual std::string GetName() const { return "find_package";}
 
   cmTypeMacro(cmFindPackageCommand, cmFindCommon);
 private:
+  class PathLabel : public cmFindCommon::PathLabel
+  {
+  protected:
+    PathLabel();
+  public:
+    PathLabel(const std::string& label) : cmFindCommon::PathLabel(label) { }
+    static PathLabel UserRegistry;
+    static PathLabel Builds;
+    static PathLabel SystemRegistry;
+  };
+
+  // Add additional search path labels and groups not present in the
+  // parent class
+  void AppendSearchPathGroups();
+
   void AppendSuccessInformation();
   void AppendToFoundProperty(bool found);
   void SetModuleVariables(const std::string& components);
   bool FindModule(bool& found);
-  void AddFindDefinition(const char* var, const char* val);
+  void AddFindDefinition(const std::string& var, const char* val);
   void RestoreFindDefinitions();
   bool HandlePackageMode();
   bool FindConfig();
@@ -69,20 +84,22 @@ private:
   void StoreVersionFound();
 
   void ComputePrefixes();
-  void AddPrefixesCMakeEnvironment();
-  void AddPrefixesCMakeVariable();
-  void AddPrefixesSystemEnvironment();
-  void AddPrefixesUserRegistry();
-  void AddPrefixesSystemRegistry();
-  void AddPrefixesBuilds();
-  void AddPrefixesCMakeSystemVariable();
-  void AddPrefixesUserGuess();
-  void AddPrefixesUserHints();
-  void LoadPackageRegistryDir(std::string const& dir);
+  void FillPrefixesCMakeEnvironment();
+  void FillPrefixesCMakeVariable();
+  void FillPrefixesSystemEnvironment();
+  void FillPrefixesUserRegistry();
+  void FillPrefixesSystemRegistry();
+  void FillPrefixesBuilds();
+  void FillPrefixesCMakeSystemVariable();
+  void FillPrefixesUserGuess();
+  void FillPrefixesUserHints();
+  void LoadPackageRegistryDir(std::string const& dir, cmSearchPath& outPaths);
   void LoadPackageRegistryWinUser();
   void LoadPackageRegistryWinSystem();
-  void LoadPackageRegistryWin(bool user, unsigned int view);
-  bool CheckPackageRegistryEntry(std::istream& is);
+  void LoadPackageRegistryWin(bool user, unsigned int view,
+                              cmSearchPath& outPaths);
+  bool CheckPackageRegistryEntry(const std::string& fname,
+                                 cmSearchPath& outPaths);
   bool SearchDirectory(std::string const& dir);
   bool CheckDirectory(std::string const& dir);
   bool FindConfigFile(std::string const& dir, std::string& file);
@@ -96,19 +113,19 @@ private:
   friend class cmFindPackageFileList;
 
   struct OriginalDef { bool exists; std::string value; };
-  std::map<cmStdString, OriginalDef> OriginalDefs;
+  std::map<std::string, OriginalDef> OriginalDefs;
 
-  cmStdString Name;
-  cmStdString Variable;
-  cmStdString Version;
+  std::string Name;
+  std::string Variable;
+  std::string Version;
   unsigned int VersionMajor;
   unsigned int VersionMinor;
   unsigned int VersionPatch;
   unsigned int VersionTweak;
   unsigned int VersionCount;
   bool VersionExact;
-  cmStdString FileFound;
-  cmStdString VersionFound;
+  std::string FileFound;
+  std::string VersionFound;
   unsigned int VersionFoundMajor;
   unsigned int VersionFoundMinor;
   unsigned int VersionFoundPatch;

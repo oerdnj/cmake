@@ -20,9 +20,10 @@ bool cmGetTargetPropertyCommand
     this->SetError("called with incorrect number of arguments");
     return false;
     }
-  std::string var = args[0].c_str();
+  std::string var = args[0];
   const std::string& targetName = args[1];
-  const char *prop = 0;
+  std::string prop;
+  bool prop_exists = false;
 
   if(args[2] == "ALIASED_TARGET")
     {
@@ -32,18 +33,24 @@ bool cmGetTargetPropertyCommand
                           this->Makefile->FindTargetToUse(targetName))
         {
         prop = target->GetName();
+        prop_exists = true;
         }
       }
     }
   else if(cmTarget* tgt = this->Makefile->FindTargetToUse(targetName))
     {
     cmTarget& target = *tgt;
-    prop = target.GetProperty(args[2].c_str(), this->Makefile);
+    const char* prop_cstr = target.GetProperty(args[2], this->Makefile);
+    if(prop_cstr)
+      {
+      prop = prop_cstr;
+      prop_exists = true;
+      }
     }
   else
     {
     bool issueMessage = false;
-    cmOStringStream e;
+    std::ostringstream e;
     cmake::MessageType messageType = cmake::AUTHOR_WARNING;
     switch(this->Makefile->GetPolicyStatus(cmPolicies::CMP0045))
       {
@@ -63,19 +70,19 @@ bool cmGetTargetPropertyCommand
       {
       e << "get_target_property() called with non-existent target \""
         << targetName <<  "\".";
-      this->Makefile->IssueMessage(messageType, e.str().c_str());
+      this->Makefile->IssueMessage(messageType, e.str());
       if (messageType == cmake::FATAL_ERROR)
         {
         return false;
         }
       }
     }
-  if (prop)
+  if (prop_exists)
     {
-    this->Makefile->AddDefinition(var.c_str(), prop);
+    this->Makefile->AddDefinition(var, prop.c_str());
     return true;
     }
-  this->Makefile->AddDefinition(var.c_str(), (var+"-NOTFOUND").c_str());
+  this->Makefile->AddDefinition(var, (var+"-NOTFOUND").c_str());
   return true;
 }
 

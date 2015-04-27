@@ -38,7 +38,7 @@ bool cmIncludeDirectoryCommand
 
   std::vector<std::string> beforeIncludes;
   std::vector<std::string> afterIncludes;
-  std::set<cmStdString> systemIncludes;
+  std::set<std::string> systemIncludes;
 
   for(; i != args.end(); ++i)
     {
@@ -47,7 +47,7 @@ bool cmIncludeDirectoryCommand
       system = true;
       continue;
       }
-    if(i->size() == 0)
+    if(i->empty())
       {
       this->SetError("given empty-string as include directory.");
       return false;
@@ -71,11 +71,7 @@ bool cmIncludeDirectoryCommand
       }
     if (system)
       {
-      for (std::vector<std::string>::const_iterator li = includes.begin();
-        li != includes.end(); ++li)
-        {
-        systemIncludes.insert(*li);
-        }
+      systemIncludes.insert(includes.begin(), includes.end());
       }
     }
   std::reverse(beforeIncludes.begin(), beforeIncludes.end());

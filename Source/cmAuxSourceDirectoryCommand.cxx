@@ -40,7 +40,7 @@ bool cmAuxSourceDirectoryCommand::InitialPass
     }
 
   // was the list already populated
-  const char *def = this->Makefile->GetDefinition(args[1].c_str());
+  const char *def = this->Makefile->GetDefinition(args[1]);
   if (def)
     {
     sourceListValue = def;
@@ -61,7 +61,7 @@ bool cmAuxSourceDirectoryCommand::InitialPass
         std::string ext = file.substr(dotpos+1);
         std::string base = file.substr(0, dotpos);
         // Process only source files
-        if( base.size() != 0
+        if(!base.empty()
             && std::find( this->Makefile->GetSourceExtensions().begin(),
                           this->Makefile->GetSourceExtensions().end(), ext )
                  != this->Makefile->GetSourceExtensions().end() )
@@ -72,7 +72,7 @@ bool cmAuxSourceDirectoryCommand::InitialPass
           // add the file as a class file so
           // depends can be done
           cmSourceFile* sf =
-            this->Makefile->GetOrCreateSource(fullname.c_str());
+            this->Makefile->GetOrCreateSource(fullname);
           sf->SetProperty("ABSTRACT","0");
           if(!sourceListValue.empty())
             {
@@ -83,7 +83,7 @@ bool cmAuxSourceDirectoryCommand::InitialPass
         }
       }
     }
-  this->Makefile->AddDefinition(args[1].c_str(), sourceListValue.c_str());
+  this->Makefile->AddDefinition(args[1], sourceListValue.c_str());
   return true;
 }
 

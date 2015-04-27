@@ -189,9 +189,9 @@ bool cmExecuteProcessCommand
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << " given unknown argument \"" << args[i] << "\".";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -200,7 +200,7 @@ bool cmExecuteProcessCommand
     {
     std::string e = "attempted to output into a file: " + output_file
       + " into a source directory.";
-    this->SetError(e.c_str());
+    this->SetError(e);
     cmSystemTools::SetFatalErrorOccured();
     return false;
     }
@@ -256,10 +256,6 @@ bool cmExecuteProcessCommand
 
   // Check the output variables.
   bool merge_output = (output_variable == error_variable);
-  if(error_variable.empty() && !error_quiet)
-    {
-    cmsysProcess_SetPipeShared(cp, cmsysProcess_Pipe_STDERR, 1);
-    }
   if(!input_file.empty())
     {
     cmsysProcess_SetPipeFile(cp, cmsysProcess_Pipe_STDIN, input_file.c_str());
@@ -307,7 +303,11 @@ bool cmExecuteProcessCommand
       }
     else if(p == cmsysProcess_Pipe_STDERR && !error_quiet)
       {
-      if(!error_variable.empty())
+      if(error_variable.empty())
+        {
+        cmSystemTools::Stderr(data, length);
+        }
+      else
         {
         cmExecuteProcessCommandAppend(tempError, data, length);
         }
@@ -324,14 +324,14 @@ bool cmExecuteProcessCommand
                                  error_strip_trailing_whitespace);
 
   // Store the output obtained.
-  if(!output_variable.empty() && tempOutput.size())
+  if(!output_variable.empty() && !tempOutput.empty())
     {
-    this->Makefile->AddDefinition(output_variable.c_str(),
+    this->Makefile->AddDefinition(output_variable,
                                   &*tempOutput.begin());
     }
-  if(!merge_output && !error_variable.empty() && tempError.size())
+  if(!merge_output && !error_variable.empty() && !tempError.empty())
     {
-    this->Makefile->AddDefinition(error_variable.c_str(),
+    this->Makefile->AddDefinition(error_variable,
                                   &*tempError.begin());
     }
 
@@ -345,19 +345,19 @@ bool cmExecuteProcessCommand
         int v = cmsysProcess_GetExitValue(cp);
         char buf[100];
         sprintf(buf, "%d", v);
-        this->Makefile->AddDefinition(result_variable.c_str(), buf);
+        this->Makefile->AddDefinition(result_variable, buf);
         }
         break;
       case cmsysProcess_State_Exception:
-        this->Makefile->AddDefinition(result_variable.c_str(),
+        this->Makefile->AddDefinition(result_variable,
                                   cmsysProcess_GetExceptionString(cp));
         break;
       case cmsysProcess_State_Error:
-        this->Makefile->AddDefinition(result_variable.c_str(),
+        this->Makefile->AddDefinition(result_variable,
                                   cmsysProcess_GetErrorString(cp));
         break;
       case cmsysProcess_State_Expired:
-        this->Makefile->AddDefinition(result_variable.c_str(),
+        this->Makefile->AddDefinition(result_variable,
                                   "Process terminated due to timeout");
         break;
       }

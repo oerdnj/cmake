@@ -25,7 +25,7 @@
 
 //----------------------------------------------------------------------------
 void cmExtraKateGenerator
-::GetDocumentation(cmDocumentationEntry& entry, const char*) const
+::GetDocumentation(cmDocumentationEntry& entry, const std::string&) const
 {
   entry.Name = this->GetName();
   entry.Brief = "Generates Kate project files.";
@@ -52,7 +52,7 @@ void cmExtraKateGenerator::Generate()
   this->ProjectName = this->GenerateProjectName(mf->GetProjectName(),
                           mf->GetSafeDefinition("CMAKE_BUILD_TYPE"),
                           this->GetPathBasename(mf->GetHomeOutputDirectory()));
-  this->UseNinja = (strcmp(this->GlobalGenerator->GetName(), "Ninja")==0);
+  this->UseNinja = (this->GlobalGenerator->GetName() == "Ninja");
 
   this->CreateKateProjectFile(mf);
   this->CreateDummyKateProjectFile(mf);
@@ -334,7 +334,7 @@ std::string cmExtraKateGenerator::GenerateProjectName(const std::string& name,
 std::string cmExtraKateGenerator::GetPathBasename(const std::string& path)const
 {
   std::string outputBasename = path;
-  while (outputBasename.size() > 0 &&
+  while (!outputBasename.empty() &&
          (outputBasename[outputBasename.size() - 1] == '/' ||
           outputBasename[outputBasename.size() - 1] == '\\'))
     {

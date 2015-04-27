@@ -34,12 +34,7 @@ cmMakeDepend::cmMakeDepend()
 
 cmMakeDepend::~cmMakeDepend()
 {
-  for(DependInformationMapType::iterator i =
-        this->DependInformationMap.begin();
-      i != this->DependInformationMap.end(); ++i)
-    {
-    delete i->second;
-    }
+  cmDeleteAll(this->DependInformationMap);
 }
 
 
@@ -74,7 +69,7 @@ void cmMakeDepend::SetMakefile(cmMakefile* makefile)
                       cmGeneratorExpression::StripAllGeneratorExpressions);
 
     std::vector<std::string> includes;
-    cmSystemTools::ExpandListArgument(incDirs.c_str(), includes);
+    cmSystemTools::ExpandListArgument(incDirs, includes);
 
     for(std::vector<std::string>::const_iterator j = includes.begin();
         j != includes.end(); ++j)
@@ -93,7 +88,7 @@ void cmMakeDepend::SetMakefile(cmMakefile* makefile)
     it != orderedAndUniqueIncludes.end();
     ++it)
     {
-    this->AddSearchPath(it->c_str());
+    this->AddSearchPath(*it);
     }
 }
 
@@ -165,7 +160,7 @@ void cmMakeDepend::GenerateDependInformation(cmDependInformation* info)
     {
     // Try to find the file amongst the sources
     cmSourceFile *srcFile = this->Makefile->GetSource
-      (cmSystemTools::GetFilenameWithoutExtension(path).c_str());
+      (cmSystemTools::GetFilenameWithoutExtension(path));
     if (srcFile)
       {
       if (srcFile->GetFullPath() == path)
@@ -180,7 +175,7 @@ void cmMakeDepend::GenerateDependInformation(cmDependInformation* info)
             t != this->IncludeDirectories.end(); ++t)
           {
           std::string incpath = *t;
-          if (incpath.size() && incpath[incpath.size() - 1] != '/')
+          if (!incpath.empty() && incpath[incpath.size() - 1] != '/')
             {
             incpath = incpath + "/";
             }
@@ -281,7 +276,7 @@ cmDependInformation* cmMakeDepend::GetDependInformation(const char* file,
     // Didn't find an instance.  Create a new one and save it.
     cmDependInformation* info = new cmDependInformation;
     info->FullPath = fullPath;
-    info->PathOnly = cmSystemTools::GetFilenamePath(fullPath.c_str());
+    info->PathOnly = cmSystemTools::GetFilenamePath(fullPath);
     info->IncludeName = file;
     this->DependInformationMap[fullPath] = info;
     return info;
@@ -323,15 +318,15 @@ std::string cmMakeDepend::FullPath(const char* fname, const char *extraPath)
       i != this->IncludeDirectories.end(); ++i)
     {
     std::string path = *i;
-    if (path.size() && path[path.size() - 1] != '/')
+    if (!path.empty() && path[path.size() - 1] != '/')
       {
       path = path + "/";
       }
     path = path + fname;
     if(cmSystemTools::FileExists(path.c_str(), true)
-       && !cmSystemTools::FileIsDirectory(path.c_str()))
+       && !cmSystemTools::FileIsDirectory(path))
       {
-      std::string fp = cmSystemTools::CollapseFullPath(path.c_str());
+      std::string fp = cmSystemTools::CollapseFullPath(path);
       this->DirectoryToFileToPathMap[extraPath? extraPath: ""][fname] = fp;
       return fp;
       }
@@ -340,15 +335,15 @@ std::string cmMakeDepend::FullPath(const char* fname, const char *extraPath)
   if (extraPath)
     {
     std::string path = extraPath;
-    if (path.size() && path[path.size() - 1] != '/')
+    if (!path.empty() && path[path.size() - 1] != '/')
       {
       path = path + "/";
       }
     path = path + fname;
     if(cmSystemTools::FileExists(path.c_str(), true)
-       && !cmSystemTools::FileIsDirectory(path.c_str()))
+       && !cmSystemTools::FileIsDirectory(path))
       {
-      std::string fp = cmSystemTools::CollapseFullPath(path.c_str());
+      std::string fp = cmSystemTools::CollapseFullPath(path);
       this->DirectoryToFileToPathMap[extraPath][fname] = fp;
       return fp;
       }
@@ -359,7 +354,7 @@ std::string cmMakeDepend::FullPath(const char* fname, const char *extraPath)
 }
 
 // Add a directory to the search path
-void cmMakeDepend::AddSearchPath(const char* path)
+void cmMakeDepend::AddSearchPath(const std::string& path)
 {
   this->IncludeDirectories.push_back(path);
 }

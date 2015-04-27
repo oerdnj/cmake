@@ -9,8 +9,8 @@
   implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the License for more information.
 ============================================================================*/
-#ifndef __cmCursesMainForm_h
-#define __cmCursesMainForm_h
+#ifndef cmCursesMainForm_h
+#define cmCursesMainForm_h
 
 #include "../cmStandardIncludes.h"
 #include "cmCursesForm.h"
@@ -51,7 +51,7 @@ public:
    * Returns true if an entry with the given key is in the
    * list of current composites.
    */
-  bool LookForCacheEntry(const char* key);
+  bool LookForCacheEntry(const std::string& key);
 
   enum {
     MIN_WIDTH = 65,
@@ -161,4 +161,4 @@ protected:
   bool SearchMode;
 };
 
-#endif // __cmCursesMainForm_h
+#endif // cmCursesMainForm_h

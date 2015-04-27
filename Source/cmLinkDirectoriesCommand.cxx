@@ -36,7 +36,7 @@ void cmLinkDirectoriesCommand::AddLinkDir(std::string const& dir)
   if(!cmSystemTools::FileIsFullPath(unixPath.c_str()))
     {
     bool convertToAbsolute = false;
-    cmOStringStream e;
+    std::ostringstream e;
     e << "This command specifies the relative path\n"
       << "  " << unixPath << "\n"
       << "as a link directory.\n";
@@ -66,5 +66,5 @@ void cmLinkDirectoriesCommand::AddLinkDir(std::string const& dir)
       unixPath = tmp;
       }
     }
-  this->Makefile->AddLinkDirectory(unixPath.c_str());
+  this->Makefile->AddLinkDirectory(unixPath);
 }

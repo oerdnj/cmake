@@ -9,8 +9,8 @@
   implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the License for more information.
 ============================================================================*/
-#ifndef __cmCursesWidget_h
-#define __cmCursesWidget_h
+#ifndef cmCursesWidget_h
+#define cmCursesWidget_h
 
 #include "../cmCacheManager.h"
 #include "cmCursesStandardIncludes.h"
@@ -40,7 +40,7 @@ public:
    * Set/Get the value (setting the value also changes the contents
    * of the field buffer).
    */
-  virtual void SetValue(const char* value);
+  virtual void SetValue(const std::string& value);
   virtual const char* GetValue();
 
   /**
@@ -84,4 +84,4 @@ protected:
   int Page;
 };
 
-#endif // __cmCursesWidget_h
+#endif // cmCursesWidget_h

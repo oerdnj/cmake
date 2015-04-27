@@ -41,7 +41,7 @@ bool cmExecProgramCommand
       }
     else if ( haveoutput_variable )
       {
-      if ( output_variable.size() > 0 )
+      if (!output_variable.empty())
         {
         this->SetError("called with incorrect number of arguments");
         return false;
@@ -59,7 +59,7 @@ bool cmExecProgramCommand
       }
     else if ( havereturn_variable )
       {
-      if ( return_variable.size() > 0 )
+      if (!return_variable.empty())
         {
         this->SetError("called with incorrect number of arguments");
         return false;
@@ -84,7 +84,7 @@ bool cmExecProgramCommand
     }
 
   std::string command;
-  if(arguments.size())
+  if(!arguments.empty())
     {
     command = cmSystemTools::ConvertToRunCommandPath(args[0].c_str());
     command += " ";
@@ -95,7 +95,7 @@ bool cmExecProgramCommand
     command = args[0];
     }
   bool verbose = true;
-  if(output_variable.size() > 0)
+  if(!output_variable.empty())
     {
     verbose = false;
     }
@@ -118,7 +118,7 @@ bool cmExecProgramCommand
     retVal = -1;
     }
 
-  if ( output_variable.size() > 0 )
+  if (!output_variable.empty())
     {
     std::string::size_type first = output.find_first_not_of(" \n\t\r");
     std::string::size_type last = output.find_last_not_of(" \n\t\r");
@@ -132,14 +132,14 @@ bool cmExecProgramCommand
       }
 
     std::string coutput = std::string(output, first, last-first+1);
-    this->Makefile->AddDefinition(output_variable.c_str(), coutput.c_str());
+    this->Makefile->AddDefinition(output_variable, coutput.c_str());
     }
 
-  if ( return_variable.size() > 0 )
+  if (!return_variable.empty())
     {
     char buffer[100];
     sprintf(buffer, "%d", retVal);
-    this->Makefile->AddDefinition(return_variable.c_str(), buffer);
+    this->Makefile->AddDefinition(return_variable, buffer);
     }
 
   return true;
