@@ -101,8 +101,7 @@ cmCTestGenericHandler* cmCTestBuildCommand::InitializeHandler()
         }
       if ( this->GlobalGenerator )
         {
-        if ( strcmp(this->GlobalGenerator->GetName(),
-            cmakeGeneratorName) != 0 )
+        if ( this->GlobalGenerator->GetName() != cmakeGeneratorName )
           {
           delete this->GlobalGenerator;
           this->GlobalGenerator = 0;
@@ -139,16 +138,17 @@ cmCTestGenericHandler* cmCTestBuildCommand::InitializeHandler()
       std::string dir = this->CTest->GetCTestConfiguration("BuildDirectory");
       std::string buildCommand
         = this->GlobalGenerator->
-        GenerateCMakeBuildCommand(cmakeBuildTarget, cmakeBuildConfiguration,
-                                  cmakeBuildAdditionalFlags, true);
+        GenerateCMakeBuildCommand(cmakeBuildTarget ? cmakeBuildTarget : "",
+          cmakeBuildConfiguration,
+          cmakeBuildAdditionalFlags ? cmakeBuildAdditionalFlags : "", true);
       cmCTestLog(this->CTest, HANDLER_VERBOSE_OUTPUT,
                  "SetMakeCommand:"
-                 << buildCommand.c_str() << "\n");
+                 << buildCommand << "\n");
       this->CTest->SetCTestConfiguration("MakeCommand", buildCommand.c_str());
       }
     else
       {
-      cmOStringStream ostr;
+      std::ostringstream ostr;
       ostr << "has no project to build. If this is a "
         "\"built with CMake\" project, verify that CTEST_CMAKE_GENERATOR "
         "and CTEST_PROJECT_NAME are set."
@@ -160,7 +160,7 @@ cmCTestGenericHandler* cmCTestBuildCommand::InitializeHandler()
         "\n"
         "Alternatively, set CTEST_BUILD_COMMAND to build the project "
         "with a custom command line.";
-      this->SetError(ostr.str().c_str());
+      this->SetError(ostr.str());
       return 0;
       }
     }
@@ -181,7 +181,7 @@ bool cmCTestBuildCommand::InitialPass(std::vector<std::string> const& args,
   bool ret =  cmCTestHandlerCommand::InitialPass(args, status);
   if ( this->Values[ctb_NUMBER_ERRORS] && *this->Values[ctb_NUMBER_ERRORS])
     {
-    cmOStringStream str;
+    std::ostringstream str;
     str << this->Handler->GetTotalErrors();
     this->Makefile->AddDefinition(
       this->Values[ctb_NUMBER_ERRORS], str.str().c_str());
@@ -189,7 +189,7 @@ bool cmCTestBuildCommand::InitialPass(std::vector<std::string> const& args,
   if ( this->Values[ctb_NUMBER_WARNINGS]
        && *this->Values[ctb_NUMBER_WARNINGS])
     {
-    cmOStringStream str;
+    std::ostringstream str;
     str << this->Handler->GetTotalWarnings();
     this->Makefile->AddDefinition(
       this->Values[ctb_NUMBER_WARNINGS], str.str().c_str());

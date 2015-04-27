@@ -53,12 +53,12 @@ bool cmDefinePropertyCommand
     }
   else
     {
-    cmOStringStream e;
+    std::ostringstream e;
     e << "given invalid scope " << args[0] << ".  "
       << "Valid scopes are "
       << "GLOBAL, DIRECTORY, TARGET, SOURCE, "
       << "TEST, VARIABLE, CACHED_VARIABLE.";
-    this->SetError(e.str().c_str());
+    this->SetError(e.str());
     return false;
     }
 
@@ -100,9 +100,9 @@ bool cmDefinePropertyCommand
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "given invalid argument \"" << args[i] << "\".";
-      this->SetError(e.str().c_str());
+      this->SetError(e.str());
       return false;
       }
     }
@@ -128,7 +128,7 @@ bool cmDefinePropertyCommand
 
   // Actually define the property.
   this->Makefile->GetCMakeInstance()->DefineProperty
-    (this->PropertyName.c_str(), scope,
+    (this->PropertyName, scope,
      this->BriefDocs.c_str(), this->FullDocs.c_str(), inherited);
 
   return true;

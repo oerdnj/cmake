@@ -38,13 +38,13 @@ bool cmUseMangledMesaCommand
     std::string e = "Bad path to Mesa, could not find: ";
     e += glh;
     e += " ";
-    this->SetError(e.c_str());
+    this->SetError(e);
     return false;
     }
   const char* destDir = args[1].c_str();
   std::vector<std::string> files;
   cmSystemTools::Glob(inputDir, "\\.h$", files);
-  if(files.size() == 0)
+  if(files.empty())
     {
     cmSystemTools::Error("Could not open Mesa Directory ", inputDir);
     return false;
@@ -107,12 +107,12 @@ CopyAndFullPathMesaHeader(const char* source,
       if(glDirLine.find(includeFile.c_str()))
         {
         std::string gfile = glDirLine.match(3);
-        fout << "#include \"" << outdir << "/" << gfile.c_str() << "\"\n";
+        fout << "#include \"" << outdir << "/" << gfile << "\"\n";
         }
       else if(glLine.find(includeFile.c_str()))
         {
         fout << "#include \"" << outdir << "/" <<
-          includeLine.match(1).c_str() << "\"\n";
+          includeLine.match(1) << "\"\n";
         }
       else
         {

@@ -87,12 +87,7 @@ cmDocumentation::cmDocumentation()
 //----------------------------------------------------------------------------
 cmDocumentation::~cmDocumentation()
 {
-  for(std::map<std::string,cmDocumentationSection *>::iterator i =
-        this->AllSections.begin();
-      i != this->AllSections.end(); ++i)
-    {
-    delete i->second;
-    }
+  cmDeleteAll(this->AllSections);
 }
 
 //----------------------------------------------------------------------------
@@ -113,7 +108,9 @@ bool cmDocumentation::PrintDocumentation(Type ht, std::ostream& os)
   switch (ht)
     {
     case cmDocumentation::Usage:
-      return this->PrintDocumentationUsage(os);
+      return this->PrintUsage(os);
+    case cmDocumentation::Help:
+      return this->PrintHelp(os);
     case cmDocumentation::Full:
       return this->PrintHelpFull(os);
     case cmDocumentation::OneManual:
@@ -165,7 +162,7 @@ bool cmDocumentation::PrintRequestedDocumentation(std::ostream& os)
     // given stream.
     cmsys::ofstream* fout = 0;
     std::ostream* s = &os;
-    if(i->Filename.length() > 0)
+    if(!i->Filename.empty())
       {
       fout = new cmsys::ofstream(i->Filename.c_str(), std::ios::out);
       if(fout)
@@ -300,7 +297,7 @@ bool cmDocumentation::CheckOptions(int argc, const char* const* argv,
        (strcmp(argv[i], "-h") == 0) ||
        (strcmp(argv[i], "-H") == 0))
       {
-      help.HelpType = cmDocumentation::Usage;
+      help.HelpType = cmDocumentation::Help;
       GET_OPT_ARGUMENT(help.Argument);
       help.Argument = cmSystemTools::LowerCase(help.Argument);
       // special case for single command
@@ -481,9 +478,9 @@ bool cmDocumentation::CheckOptions(int argc, const char* const* argv,
 }
 
 //----------------------------------------------------------------------------
-void cmDocumentation::SetName(const char* name)
+void cmDocumentation::SetName(const std::string& name)
 {
-  this->NameString = name?name:"";
+  this->NameString = name;
 }
 
 //----------------------------------------------------------------------------
@@ -676,7 +673,7 @@ bool cmDocumentation::PrintFiles(std::ostream& os,
   for (std::vector<std::string>::const_iterator i = files.begin();
        i != files.end(); ++i)
     {
-    found = r.ProcessFile(i->c_str()) || found;
+    found = r.ProcessFile(*i) || found;
     }
   return found;
 }
@@ -703,7 +700,7 @@ bool cmDocumentation::PrintHelpOneManual(std::ostream& os)
     return true;
     }
   // Argument was not a manual.  Complain.
-  os << "Argument \"" << this->CurrentArgument.c_str()
+  os << "Argument \"" << this->CurrentArgument
      << "\" to --help-manual is not an available manual.  "
      << "Use --help-manual-list to see all available manuals.\n";
   return false;
@@ -725,7 +722,7 @@ bool cmDocumentation::PrintHelpOneCommand(std::ostream& os)
     return true;
     }
   // Argument was not a command.  Complain.
-  os << "Argument \"" << this->CurrentArgument.c_str()
+  os << "Argument \"" << this->CurrentArgument
      << "\" to --help-command is not a CMake command.  "
      << "Use --help-command-list to see all commands.\n";
   return false;
@@ -747,7 +744,7 @@ bool cmDocumentation::PrintHelpOneModule(std::ostream& os)
     return true;
     }
   // Argument was not a module.  Complain.
-  os << "Argument \"" << this->CurrentArgument.c_str()
+  os << "Argument \"" << this->CurrentArgument
      << "\" to --help-module is not a CMake module.\n";
   return false;
 }
@@ -782,7 +779,7 @@ bool cmDocumentation::PrintHelpOneProperty(std::ostream& os)
     return true;
     }
   // Argument was not a property.  Complain.
-  os << "Argument \"" << this->CurrentArgument.c_str()
+  os << "Argument \"" << this->CurrentArgument
      << "\" to --help-property is not a CMake property.  "
      << "Use --help-property-list to see all properties.\n";
   return false;
@@ -806,7 +803,7 @@ bool cmDocumentation::PrintHelpOnePolicy(std::ostream& os)
     }
 
   // Argument was not a policy.  Complain.
-  os << "Argument \"" << this->CurrentArgument.c_str()
+  os << "Argument \"" << this->CurrentArgument
      << "\" to --help-policy is not a CMake policy.\n";
   return false;
 }
@@ -827,7 +824,7 @@ bool cmDocumentation::PrintHelpOneVariable(std::ostream& os)
     return true;
     }
   // Argument was not a variable.  Complain.
-  os << "Argument \"" << this->CurrentArgument.c_str()
+  os << "Argument \"" << this->CurrentArgument
      << "\" to --help-variable is not a defined variable.  "
      << "Use --help-variable-list to see all defined variables.\n";
   return false;
@@ -841,7 +838,19 @@ bool cmDocumentation::PrintHelpListVariables(std::ostream& os)
 }
 
 //----------------------------------------------------------------------------
-bool cmDocumentation::PrintDocumentationUsage(std::ostream& os)
+bool cmDocumentation::PrintUsage(std::ostream& os)
+{
+  std::map<std::string,cmDocumentationSection*>::iterator si;
+  si = this->AllSections.find("Usage");
+  if(si != this->AllSections.end())
+    {
+    this->Formatter.PrintSection(os, *si->second);
+    }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool cmDocumentation::PrintHelp(std::ostream& os)
 {
   std::map<std::string,cmDocumentationSection*>::iterator si;
   si = this->AllSections.find("Usage");
@@ -868,7 +877,7 @@ bool cmDocumentation::PrintDocumentationUsage(std::ostream& os)
 //----------------------------------------------------------------------------
 const char* cmDocumentation::GetNameString() const
 {
-  if(this->NameString.length() > 0)
+  if(!this->NameString.empty())
     {
     return this->NameString.c_str();
     }

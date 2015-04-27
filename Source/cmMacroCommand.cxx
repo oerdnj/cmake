@@ -20,7 +20,7 @@ public:
   cmMacroHelperCommand() {}
 
   ///! clean up any memory allocated by the macro
-  ~cmMacroHelperCommand() {};
+  ~cmMacroHelperCommand() {}
 
   /**
    * This is used to avoid including this command
@@ -60,12 +60,12 @@ public:
                                  cmExecutionStatus &);
 
   virtual bool InitialPass(std::vector<std::string> const&,
-                           cmExecutionStatus &) { return false; };
+                           cmExecutionStatus &) { return false; }
 
   /**
    * The name of the command as specified in CMakeList.txt.
    */
-  virtual const char* GetName() const { return this->Args[0].c_str(); }
+  virtual std::string GetName() const { return this->Args[0]; }
 
   cmTypeMacro(cmMacroHelperCommand, cmCommand);
 
@@ -95,7 +95,7 @@ bool cmMacroHelperCommand::InvokeInitialPass
     std::string errorMsg =
       "Macro invoked with incorrect arguments for macro named: ";
     errorMsg += this->Args[0];
-    this->SetError(errorMsg.c_str());
+    this->SetError(errorMsg);
     return false;
     }
 
@@ -107,7 +107,7 @@ bool cmMacroHelperCommand::InvokeInitialPass
   cmMakefile::PolicyPushPop polScope(this->Makefile, true, this->Policies);
 
   // set the value of argc
-  cmOStringStream argcDefStream;
+  std::ostringstream argcDefStream;
   argcDefStream << expandedArgs.size();
   std::string argcDef = argcDefStream.str();
 
@@ -116,7 +116,7 @@ bool cmMacroHelperCommand::InvokeInitialPass
   std::string argnDef;
   bool argnDefInitialized = false;
   bool argvDefInitialized = false;
-  if( this->Functions.size())
+  if(!this->Functions.empty())
     {
     this->FilePath = this->Functions[0].FilePath;
     }
@@ -170,7 +170,7 @@ bool cmMacroHelperCommand::InvokeInitialPass
               {
               if ( cnt >= this->Args.size()-1 )
                 {
-                if ( argnDef.size() > 0 )
+                if (!argnDef.empty())
                   {
                   argnDef += ";";
                   }
@@ -195,7 +195,7 @@ bool cmMacroHelperCommand::InvokeInitialPass
             std::vector<std::string>::const_iterator eit;
             for(eit = expandedArgs.begin(); eit != expandedArgs.end(); ++eit)
               {
-              if ( argvDef.size() > 0 )
+              if (!argvDef.empty())
                 {
                 argvDef += ";";
                 }
@@ -276,8 +276,8 @@ IsFunctionBlocked(const cmListFileFunction& lff, cmMakefile &mf,
       f->Functions = this->Functions;
       mf.RecordPolicies(f->Policies);
       std::string newName = "_" + this->Args[0];
-      mf.GetCMakeInstance()->RenameCommand(this->Args[0].c_str(),
-                                           newName.c_str());
+      mf.GetCMakeInstance()->RenameCommand(this->Args[0],
+                                           newName);
       mf.AddCommand(f);
 
       // remove the function blocker now that the macro is defined
@@ -328,11 +328,7 @@ bool cmMacroCommand::InitialPass(std::vector<std::string> const& args,
 
   // create a function blocker
   cmMacroFunctionBlocker *f = new cmMacroFunctionBlocker();
-  for(std::vector<std::string>::const_iterator j = args.begin();
-      j != args.end(); ++j)
-    {
-    f->Args.push_back(*j);
-    }
+  f->Args.insert(f->Args.end(), args.begin(), args.end());
   this->Makefile->AddFunctionBlocker(f);
   return true;
 }

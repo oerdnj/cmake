@@ -353,10 +353,11 @@ void CCONV cmAddCustomCommandToTarget(void *arg, const char* target,
     }
 
   // Pass the call to the makefile instance.
+  std::vector<std::string> no_byproducts;
   std::vector<std::string> no_depends;
   const char* no_comment = 0;
   const char* no_working_dir = 0;
-  mf->AddCustomCommandToTarget(target, no_depends, commandLines,
+  mf->AddCustomCommandToTarget(target, no_byproducts, no_depends, commandLines,
                                cctype, no_comment, no_working_dir);
 }
 
@@ -557,9 +558,9 @@ void CCONV *cmGetSource(void *arg, const char *name)
       sf->RealSourceFile = rsf;
       sf->FullPath = rsf->GetFullPath();
       sf->SourceName =
-        cmSystemTools::GetFilenameWithoutLastExtension(sf->FullPath.c_str());
+        cmSystemTools::GetFilenameWithoutLastExtension(sf->FullPath);
       sf->SourceExtension =
-        cmSystemTools::GetFilenameLastExtension(sf->FullPath.c_str());
+        cmSystemTools::GetFilenameLastExtension(sf->FullPath);
 
       // Store the proxy in the map so it can be re-used and deleted later.
       cmCPluginAPISourceFileMap::value_type entry(rsf, sf);
@@ -583,7 +584,7 @@ void * CCONV cmAddSource(void *arg, void *arg2)
     }
 
   // Create the real cmSourceFile instance and copy over saved information.
-  cmSourceFile* rsf = mf->GetOrCreateSource(osf->FullPath.c_str());
+  cmSourceFile* rsf = mf->GetOrCreateSource(osf->FullPath);
   rsf->GetProperties() = osf->Properties;
   for(std::vector<std::string>::iterator i = osf->Depends.begin();
       i != osf->Depends.end(); ++i)
@@ -768,7 +769,7 @@ void CCONV cmSourceFileSetName(void *arg, const char* name, const char* dir,
       }
     }
 
-  cmOStringStream e;
+  std::ostringstream e;
   e << "Cannot find source file \"" << pathname << "\"";
   e << "\n\nTried extensions";
   for( std::vector<std::string>::const_iterator ext = sourceExts.begin();

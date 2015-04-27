@@ -20,7 +20,7 @@ public:
   cmFunctionHelperCommand() {}
 
   ///! clean up any memory allocated by the function
-  ~cmFunctionHelperCommand() {};
+  ~cmFunctionHelperCommand() {}
 
   /**
    * This is used to avoid including this command
@@ -59,12 +59,12 @@ public:
                                  cmExecutionStatus &);
 
   virtual bool InitialPass(std::vector<std::string> const&,
-                           cmExecutionStatus &) { return false; };
+                           cmExecutionStatus &) { return false; }
 
   /**
    * The name of the command as specified in CMakeList.txt.
    */
-  virtual const char* GetName() const { return this->Args[0].c_str(); }
+  virtual std::string GetName() const { return this->Args[0]; }
 
   cmTypeMacro(cmFunctionHelperCommand, cmCommand);
 
@@ -89,7 +89,7 @@ bool cmFunctionHelperCommand::InvokeInitialPass
     std::string errorMsg =
       "Function invoked with incorrect arguments for function named: ";
     errorMsg += this->Args[0];
-    this->SetError(errorMsg.c_str());
+    this->SetError(errorMsg);
     return false;
     }
 
@@ -103,7 +103,7 @@ bool cmFunctionHelperCommand::InvokeInitialPass
   cmMakefile::PolicyPushPop polScope(this->Makefile, true, this->Policies);
 
   // set the value of argc
-  cmOStringStream strStream;
+  std::ostringstream strStream;
   strStream << expandedArgs.size();
   this->Makefile->AddDefinition("ARGC",strStream.str().c_str());
   this->Makefile->MarkVariableAsUsed("ARGC");
@@ -111,17 +111,17 @@ bool cmFunctionHelperCommand::InvokeInitialPass
   // set the values for ARGV0 ARGV1 ...
   for (unsigned int t = 0; t < expandedArgs.size(); ++t)
     {
-    cmOStringStream tmpStream;
+    std::ostringstream tmpStream;
     tmpStream << "ARGV" << t;
-    this->Makefile->AddDefinition(tmpStream.str().c_str(),
+    this->Makefile->AddDefinition(tmpStream.str(),
                                   expandedArgs[t].c_str());
-    this->Makefile->MarkVariableAsUsed(tmpStream.str().c_str());
+    this->Makefile->MarkVariableAsUsed(tmpStream.str());
     }
 
   // define the formal arguments
   for (unsigned int j = 1; j < this->Args.size(); ++j)
     {
-    this->Makefile->AddDefinition(this->Args[j].c_str(),
+    this->Makefile->AddDefinition(this->Args[j],
                                   expandedArgs[j-1].c_str());
     }
 
@@ -132,14 +132,14 @@ bool cmFunctionHelperCommand::InvokeInitialPass
   unsigned int cnt = 0;
   for ( eit = expandedArgs.begin(); eit != expandedArgs.end(); ++eit )
     {
-    if ( argvDef.size() > 0 )
+    if (!argvDef.empty())
       {
       argvDef += ";";
       }
     argvDef += *eit;
     if ( cnt >= this->Args.size()-1 )
       {
-      if ( argnDef.size() > 0 )
+      if (!argnDef.empty())
         {
         argnDef += ";";
         }
@@ -219,8 +219,8 @@ IsFunctionBlocked(const cmListFileFunction& lff, cmMakefile &mf,
         }
 
       std::string newName = "_" + this->Args[0];
-      mf.GetCMakeInstance()->RenameCommand(this->Args[0].c_str(),
-                                           newName.c_str());
+      mf.GetCMakeInstance()->RenameCommand(this->Args[0],
+                                           newName);
       mf.AddCommand(f);
 
       // remove the function blocker now that the function is defined
@@ -271,11 +271,7 @@ bool cmFunctionCommand
 
   // create a function blocker
   cmFunctionFunctionBlocker *f = new cmFunctionFunctionBlocker();
-  for(std::vector<std::string>::const_iterator j = args.begin();
-      j != args.end(); ++j)
-    {
-    f->Args.push_back(*j);
-    }
+  f->Args.insert(f->Args.end(), args.begin(), args.end());
   this->Makefile->AddFunctionBlocker(f);
   return true;
 }

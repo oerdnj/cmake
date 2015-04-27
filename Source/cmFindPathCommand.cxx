@@ -38,7 +38,7 @@ bool cmFindPathCommand
     if(this->AlreadyInCacheWithoutMetaInfo)
       {
       this->Makefile->AddCacheDefinition(
-        this->VariableName.c_str(), "",
+        this->VariableName, "",
         this->VariableDocumentation.c_str(),
         (this->IncludeFileInPath ?
          cmCacheManager::FILEPATH :cmCacheManager::PATH)
@@ -48,17 +48,17 @@ bool cmFindPathCommand
     }
 
   std::string result = this->FindHeader();
-  if(result.size() != 0)
+  if(!result.empty())
     {
     this->Makefile->AddCacheDefinition
-      (this->VariableName.c_str(), result.c_str(),
+      (this->VariableName, result.c_str(),
        this->VariableDocumentation.c_str(),
        (this->IncludeFileInPath) ?
        cmCacheManager::FILEPATH :cmCacheManager::PATH);
     return true;
     }
   this->Makefile->AddCacheDefinition
-    (this->VariableName.c_str(),
+    (this->VariableName,
      (this->VariableName + "-NOTFOUND").c_str(),
      this->VariableDocumentation.c_str(),
      (this->IncludeFileInPath) ?
@@ -89,9 +89,9 @@ std::string
 cmFindPathCommand::FindHeaderInFramework(std::string const& file,
                                          std::string const& dir)
 {
-  cmStdString fileName = file;
-  cmStdString frameWorkName;
-  cmStdString::size_type pos = fileName.find("/");
+  std::string fileName = file;
+  std::string frameWorkName;
+  std::string::size_type pos = fileName.find("/");
   // if there is a / in the name try to find the header as a framework
   // For example bar/foo.h would look for:
   // bar.framework/Headers/foo.h
@@ -108,7 +108,7 @@ cmFindPathCommand::FindHeaderInFramework(std::string const& file,
       fileName = file;
       frameWorkName = "";
       }
-    if(frameWorkName.size())
+    if(!frameWorkName.empty())
       {
       std::string fpath = dir;
       fpath += frameWorkName;
@@ -128,15 +128,15 @@ cmFindPathCommand::FindHeaderInFramework(std::string const& file,
     }
   // if it is not found yet or not a framework header, then do a glob search
   // for all frameworks in the directory: dir/*.framework/Headers/<file>
-  cmStdString glob = dir;
+  std::string glob = dir;
   glob += "*.framework/Headers/";
   glob += file;
   cmsys::Glob globIt;
   globIt.FindFiles(glob);
   std::vector<std::string> files = globIt.GetFiles();
-  if(files.size())
+  if(!files.empty())
     {
-    cmStdString fheader = cmSystemTools::CollapseFullPath(files[0].c_str());
+    std::string fheader = cmSystemTools::CollapseFullPath(files[0]);
     if(this->IncludeFileInPath)
       {
       return fheader;

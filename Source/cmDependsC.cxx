@@ -37,7 +37,7 @@ cmDependsC::cmDependsC()
 //----------------------------------------------------------------------------
 cmDependsC::cmDependsC(cmLocalGenerator* lg,
                    const char* targetDir,
-                   const char* lang,
+                   const std::string& lang,
                    const std::map<std::string, DependencyVector>* validDeps)
 : cmDepends(lg, targetDir)
 , ValidDeps(validDeps)
@@ -54,14 +54,14 @@ cmDependsC::cmDependsC(cmLocalGenerator* lg,
   std::string scanRegexVar = "CMAKE_";
   scanRegexVar += lang;
   scanRegexVar += "_INCLUDE_REGEX_SCAN";
-  if(const char* sr = mf->GetDefinition(scanRegexVar.c_str()))
+  if(const char* sr = mf->GetDefinition(scanRegexVar))
     {
     scanRegex = sr;
     }
   std::string complainRegexVar = "CMAKE_";
   complainRegexVar += lang;
   complainRegexVar += "_INCLUDE_REGEX_COMPLAIN";
-  if(const char* cr = mf->GetDefinition(complainRegexVar.c_str()))
+  if(const char* cr = mf->GetDefinition(complainRegexVar))
     {
     complainRegex = cr;
     }
@@ -90,12 +90,7 @@ cmDependsC::cmDependsC(cmLocalGenerator* lg,
 cmDependsC::~cmDependsC()
 {
   this->WriteCacheFile();
-
-  for (std::map<cmStdString, cmIncludeLines*>::iterator it=
-         this->FileCache.begin(); it!=this->FileCache.end(); ++it)
-    {
-    delete it->second;
-    }
+  cmDeleteAll(this->FileCache);
 }
 
 //----------------------------------------------------------------------------
@@ -116,7 +111,7 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
     return false;
     }
 
-  std::set<cmStdString> dependencies;
+  std::set<std::string> dependencies;
   bool haveDeps = false;
 
   if (this->ValidDeps != 0)
@@ -125,11 +120,7 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
                                                     this->ValidDeps->find(obj);
     if (tmpIt!= this->ValidDeps->end())
       {
-      for(DependencyVector::const_iterator i=tmpIt->second.begin();
-         i != tmpIt->second.end(); ++i)
-        {
-        dependencies.insert(*i);
-        }
+      dependencies.insert(tmpIt->second.begin(), tmpIt->second.end());
       haveDeps = true;
       }
     }
@@ -149,7 +140,7 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
       this->Encountered.insert(*srcIt);
       }
 
-    std::set<cmStdString> scanned;
+    std::set<std::string> scanned;
 
     // Use reserve to allocate enough memory for tempPathStr
     // so that during the loops no memory is allocated or freed
@@ -182,7 +173,7 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
         }
       else
         {
-        std::map<cmStdString, cmStdString>::iterator
+        std::map<std::string, std::string>::iterator
           headerLocationIt=this->HeaderLocationCache.find(current.FileName);
         if (headerLocationIt!=this->HeaderLocationCache.end())
           {
@@ -224,7 +215,7 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
         scanned.insert(fullName);
 
         // Check whether this file is already in the cache
-        std::map<cmStdString, cmIncludeLines*>::iterator fileIt=
+        std::map<std::string, cmIncludeLines*>::iterator fileIt=
           this->FileCache.find(fullName);
         if (fileIt!=this->FileCache.end())
           {
@@ -269,16 +260,22 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
   // written by the original local generator for this directory
   // convert the dependencies to paths relative to the home output
   // directory.  We must do the same here.
-  internalDepends << obj << std::endl;
-  for(std::set<cmStdString>::const_iterator i=dependencies.begin();
+  std::string obj_i =
+    this->LocalGenerator->Convert(obj, cmLocalGenerator::HOME_OUTPUT);
+  std::string obj_m =
+    this->LocalGenerator->ConvertToOutputFormat(obj_i,
+                                                cmLocalGenerator::MAKERULE);
+  internalDepends << obj_i << std::endl;
+
+  for(std::set<std::string>::const_iterator i=dependencies.begin();
       i != dependencies.end(); ++i)
     {
-    makeDepends << obj << ": " <<
-      this->LocalGenerator->Convert(i->c_str(),
+    makeDepends << obj_m << ": " <<
+      this->LocalGenerator->Convert(*i,
                                     cmLocalGenerator::HOME_OUTPUT,
-                                    cmLocalGenerator::MAKEFILE)
+                                    cmLocalGenerator::MAKERULE)
                 << std::endl;
-    internalDepends << " " << i->c_str() << std::endl;
+    internalDepends << " " << *i << std::endl;
     }
   makeDepends << std::endl;
 
@@ -288,7 +285,7 @@ bool cmDependsC::WriteDependencies(const std::set<std::string>& sources,
 //----------------------------------------------------------------------------
 void cmDependsC::ReadCacheFile()
 {
-  if(this->CacheFileName.size() == 0)
+  if(this->CacheFileName.empty())
     {
     return;
     }
@@ -377,7 +374,7 @@ void cmDependsC::ReadCacheFile()
 //----------------------------------------------------------------------------
 void cmDependsC::WriteCacheFile() const
 {
-  if(this->CacheFileName.size() == 0)
+  if(this->CacheFileName.empty())
     {
     return;
     }
@@ -392,7 +389,7 @@ void cmDependsC::WriteCacheFile() const
   cacheOut << this->IncludeRegexComplainString << "\n\n";
   cacheOut << this->IncludeRegexTransformString << "\n\n";
 
-  for (std::map<cmStdString, cmIncludeLines*>::const_iterator fileIt=
+  for (std::map<std::string, cmIncludeLines*>::const_iterator fileIt=
          this->FileCache.begin();
        fileIt!=this->FileCache.end(); ++fileIt)
     {
@@ -421,7 +418,7 @@ void cmDependsC::WriteCacheFile() const
 
 //----------------------------------------------------------------------------
 void cmDependsC::Scan(std::istream& is, const char* directory,
-  const cmStdString& fullName)
+  const std::string& fullName)
 {
   cmIncludeLines* newCacheEntry=new cmIncludeLines;
   newCacheEntry->Used=true;

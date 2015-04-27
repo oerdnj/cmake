@@ -28,10 +28,6 @@ function(help_xcode_depends)
   endif()
 endfunction()
 
-if("${CMAKE_GENERATOR}" MATCHES "Ninja")
-  set(HELP_NINJA 1) # TODO Why is this needed?
-endif()
-
 # The Intel compiler causes the MSVC linker to crash during
 # incremental linking, so avoid the /INCREMENTAL:YES flag.
 if(WIN32 AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
@@ -45,6 +41,11 @@ endif()
 list(APPEND _cmake_options "-DTEST_LINK_DEPENDS=${TEST_LINK_DEPENDS}")
 
 list(APPEND _cmake_options "-DCMAKE_FORCE_DEPFILES=1")
+
+if(NOT CMAKE_GENERATOR MATCHES "Visual Studio ([^6789]|[6789][0-9])")
+  set(TEST_MULTI3 1)
+  list(APPEND _cmake_options "-DTEST_MULTI3=1")
+endif()
 
 file(MAKE_DIRECTORY ${BuildDepends_BINARY_DIR}/Project)
 message("Creating Project/foo.cxx")
@@ -67,6 +68,11 @@ file(WRITE ${BuildDepends_BINARY_DIR}/Project/link_depends_no_shared_lib.h
 file(WRITE ${BuildDepends_BINARY_DIR}/Project/link_depends_no_shared_exe.h
   "#define link_depends_no_shared_exe_value 0\n")
 set(link_depends_no_shared_check_txt ${BuildDepends_BINARY_DIR}/Project/link_depends_no_shared_check.txt)
+
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/external.in "external original\n")
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/multi1-in.txt "multi1-in original\n")
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/multi2-stamp.txt "multi2-stamp original\n")
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/multi3-stamp.txt "multi3-stamp original\n")
 
 help_xcode_depends()
 
@@ -166,9 +172,62 @@ else()
     "Targets link_depends_no_shared_lib and link_depends_no_shared_exe not both built.")
 endif()
 
+if(EXISTS ${BuildDepends_BINARY_DIR}/Project/external.out)
+  file(STRINGS ${BuildDepends_BINARY_DIR}/Project/external.out external_out)
+  if("${external_out}" STREQUAL "external original")
+    message(STATUS "external.out contains '${external_out}'")
+  else()
+    message(SEND_ERROR "Project did not initially build properly: "
+      "external.out contains '${external_out}'")
+  endif()
+else()
+  message(SEND_ERROR "Project did not initially build properly: "
+    "external.out is missing")
+endif()
+
+if(EXISTS ${BuildDepends_BINARY_DIR}/Project/multi1-out2-copy.txt)
+  file(STRINGS ${BuildDepends_BINARY_DIR}/Project/multi1-out2-copy.txt multi1_out)
+  if("${multi1_out}" STREQUAL "multi1-in original")
+    message(STATUS "multi1-out2-copy.txt contains '${multi1_out}'")
+  else()
+    message(SEND_ERROR "Project did not initially build properly: "
+      "multi1-out2-copy.txt contains '${multi1_out}'")
+  endif()
+else()
+  message(SEND_ERROR "Project did not initially build properly: "
+    "multi1-out2-copy.txt is missing")
+endif()
+
+if(EXISTS ${BuildDepends_BINARY_DIR}/Project/multi2-real.txt)
+  if(${BuildDepends_BINARY_DIR}/Project/multi2-real.txt
+      IS_NEWER_THAN ${BuildDepends_BINARY_DIR}/Project/multi2-stamp.txt)
+    message(STATUS "multi2-real.txt is newer than multi2-stamp.txt")
+  else()
+    message(SEND_ERROR "Project did not initially build properly: "
+      "multi2-real.txt is not newer than multi2-stamp.txt")
+  endif()
+else()
+  message(SEND_ERROR "Project did not initially build properly: "
+    "multi2-real.txt is missing")
+endif()
+
+if(TEST_MULTI3)
+  if(EXISTS ${BuildDepends_BINARY_DIR}/Project/multi3-real.txt)
+    if(${BuildDepends_BINARY_DIR}/Project/multi3-real.txt
+        IS_NEWER_THAN ${BuildDepends_BINARY_DIR}/Project/multi3-stamp.txt)
+      message(STATUS "multi3-real.txt is newer than multi3-stamp.txt")
+    else()
+      message(SEND_ERROR "Project did not initially build properly: "
+        "multi3-real.txt is not newer than multi3-stamp.txt")
+    endif()
+  else()
+    message(SEND_ERROR "Project did not initially build properly: "
+      "multi3-real.txt is missing")
+  endif()
+endif()
+
 message("Waiting 3 seconds...")
-# any additional argument will cause ${bar} to wait forever
-execute_process(COMMAND ${bar} -infinite TIMEOUT 3 OUTPUT_VARIABLE out)
+execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 3)
 
 message("Modifying Project/foo.cxx")
 write_file(${BuildDepends_BINARY_DIR}/Project/foo.cxx
@@ -191,6 +250,11 @@ if(TEST_LINK_DEPENDS)
   file(WRITE ${TEST_LINK_DEPENDS} "2")
 endif()
 
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/external.in "external changed\n")
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/multi1-in.txt "multi1-in changed\n")
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/multi2-stamp.txt "multi2-stamp changed\n")
+file(WRITE ${BuildDepends_BINARY_DIR}/Project/multi3-stamp.txt "multi3-stamp changed\n")
+
 help_xcode_depends()
 
 message("Building project second time")
@@ -202,7 +266,7 @@ try_compile(RESULT
   OUTPUT_VARIABLE OUTPUT)
 
 # Xcode is in serious need of help here
-if(HELP_XCODE OR HELP_NINJA)
+if(HELP_XCODE)
   try_compile(RESULT
     ${BuildDepends_BINARY_DIR}/Project
     ${BuildDepends_SOURCE_DIR}/Project
@@ -293,4 +357,58 @@ if(EXISTS "${link_depends_no_shared_check_txt}")
 else()
   message(SEND_ERROR "Project did not rebuild properly.  "
     "Targets link_depends_no_shared_lib and link_depends_no_shared_exe not both built.")
+endif()
+
+if(EXISTS ${BuildDepends_BINARY_DIR}/Project/external.out)
+  file(STRINGS ${BuildDepends_BINARY_DIR}/Project/external.out external_out)
+  if("${external_out}" STREQUAL "external changed")
+    message(STATUS "external.out contains '${external_out}'")
+  else()
+    message(SEND_ERROR "Project did not rebuild properly: "
+      "external.out contains '${external_out}'")
+  endif()
+else()
+  message(SEND_ERROR "Project did not rebuild properly: "
+    "external.out is missing")
+endif()
+
+if(EXISTS ${BuildDepends_BINARY_DIR}/Project/multi1-out2-copy.txt)
+  file(STRINGS ${BuildDepends_BINARY_DIR}/Project/multi1-out2-copy.txt multi1_out)
+  if("${multi1_out}" STREQUAL "multi1-in changed")
+    message(STATUS "multi1-out2-copy.txt contains '${multi1_out}'")
+  else()
+    message(SEND_ERROR "Project did not rebuild properly: "
+      "multi1-out2-copy.txt contains '${multi1_out}'")
+  endif()
+else()
+  message(SEND_ERROR "Project did not rebuild properly: "
+    "multi1-out2-copy.txt is missing")
+endif()
+
+if(EXISTS ${BuildDepends_BINARY_DIR}/Project/multi2-real.txt)
+  if(${BuildDepends_BINARY_DIR}/Project/multi2-real.txt
+      IS_NEWER_THAN ${BuildDepends_BINARY_DIR}/Project/multi2-stamp.txt)
+    message(STATUS "multi2-real.txt is newer than multi2-stamp.txt")
+  else()
+    message(SEND_ERROR "Project did not rebuild properly: "
+      "multi2-real.txt is not newer than multi2-stamp.txt")
+  endif()
+else()
+  message(SEND_ERROR "Project did not rebuild properly: "
+    "multi2-real.txt is missing")
+endif()
+
+if(TEST_MULTI3)
+  if(EXISTS ${BuildDepends_BINARY_DIR}/Project/multi3-real.txt)
+    if(${BuildDepends_BINARY_DIR}/Project/multi3-real.txt
+        IS_NEWER_THAN ${BuildDepends_BINARY_DIR}/Project/multi3-stamp.txt)
+      message(STATUS "multi3-real.txt is newer than multi3-stamp.txt")
+    else()
+      message(SEND_ERROR "Project did not rebuild properly: "
+        "multi3-real.txt is not newer than multi3-stamp.txt")
+    endif()
+  else()
+    message(SEND_ERROR "Project did not rebuild properly: "
+      "multi3-real.txt is missing")
+  endif()
 endif()

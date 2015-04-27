@@ -45,8 +45,8 @@ int cmCPackOSXX11Generator::PackageFiles()
     {
     cmCPackLogger(cmCPackLog::LOG_DEBUG, "The cpackPackageExecutables: "
       << cpackPackageExecutables << "." << std::endl);
-    cmOStringStream str;
-    cmOStringStream deleteStr;
+    std::ostringstream str;
+    std::ostringstream deleteStr;
     std::vector<std::string> cpackPackageExecutablesVector;
     cmSystemTools::ExpandListArgument(cpackPackageExecutables,
       cpackPackageExecutablesVector);
@@ -165,7 +165,7 @@ int cmCPackOSXX11Generator::PackageFiles()
   std::string output;
   std::string tmpFile = this->GetOption("CPACK_TOPLEVEL_DIRECTORY");
   tmpFile += "/hdiutilOutput.log";
-  cmOStringStream dmgCmd;
+  std::ostringstream dmgCmd;
   dmgCmd << "\"" << this->GetOption("CPACK_INSTALLER_PROGRAM_DISK_IMAGE")
          << "\" create -ov -format UDZO -srcfolder \""
          << diskImageDirectory.c_str()
@@ -227,7 +227,7 @@ int cmCPackOSXX11Generator::InitializeInternal()
 
 //----------------------------------------------------------------------
 /*
-bool cmCPackOSXX11Generator::CopyCreateResourceFile(const char* name)
+bool cmCPackOSXX11Generator::CopyCreateResourceFile(const std::string& name)
 {
   std::string uname = cmSystemTools::UpperCase(name);
   std::string cpackVar = "CPACK_RESOURCE_FILE_" + uname;
@@ -271,8 +271,8 @@ bool cmCPackOSXX11Generator::CopyCreateResourceFile(const char* name)
 */
 
 //----------------------------------------------------------------------
-bool cmCPackOSXX11Generator::CopyResourcePlistFile(const char* name,
-  const char* dir, const char* outputFileName /* = 0 */,
+bool cmCPackOSXX11Generator::CopyResourcePlistFile(const std::string& name,
+  const std::string& dir, const char* outputFileName /* = 0 */,
   bool copyOnly /* = false */)
 {
   std::string inFName = "CPack.";
@@ -288,7 +288,7 @@ bool cmCPackOSXX11Generator::CopyResourcePlistFile(const char* name,
 
   if ( !outputFileName )
     {
-    outputFileName = name;
+    outputFileName = name.c_str();
     }
 
   std::string destFileName = dir;

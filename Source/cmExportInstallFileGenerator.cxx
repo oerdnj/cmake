@@ -56,7 +56,7 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
       }
     else
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "install(EXPORT \""
         << this->IEGen->GetExportSet()->GetName()
         << "\" ...) " << "includes target \"" << te->Target->GetName()
@@ -69,13 +69,24 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
   this->GenerateExpectedTargetsCode(os, expectedTargets);
   }
 
-  // Add code to compute the installation prefix relative to the
-  // import file location.
+  // Set an _IMPORT_PREFIX variable for import location properties
+  // to reference if they are relative to the install prefix.
+  std::string installPrefix =
+    this->IEGen->GetMakefile()->GetSafeDefinition("CMAKE_INSTALL_PREFIX");
   const char* installDest = this->IEGen->GetDestination();
-  if(!cmSystemTools::FileIsFullPath(installDest))
+  if(cmSystemTools::FileIsFullPath(installDest))
     {
-    std::string installPrefix =
-      this->IEGen->GetMakefile()->GetSafeDefinition("CMAKE_INSTALL_PREFIX");
+    // The export file is being installed to an absolute path so the
+    // package is not relocatable.  Use the configured install prefix.
+    os <<
+      "# The installation prefix configured by this project.\n"
+      "set(_IMPORT_PREFIX \"" << installPrefix << "\")\n"
+      "\n";
+    }
+  else
+    {
+    // Add code to compute the installation prefix relative to the
+    // import file location.
     std::string absDest = installPrefix + "/" + installDest;
     std::string absDestS = absDest + "/";
     os << "# Compute the installation prefix relative to this file.\n"
@@ -106,9 +117,6 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
       dest = cmSystemTools::GetFilenamePath(dest);
       }
     os << "\n";
-
-    // Import location properties may reference this variable.
-    this->ImportPrefix = "${_IMPORT_PREFIX}/";
     }
 
   std::vector<std::string> missingTargets;
@@ -122,6 +130,17 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
       tei != allTargets.end(); ++tei)
     {
     cmTarget* te = (*tei)->Target;
+
+    if (te->GetProperty("INTERFACE_SOURCES"))
+      {
+      std::ostringstream e;
+      e << "Target \""
+        << te->GetName()
+        << "\" has a populated INTERFACE_SOURCES property.  This is not "
+          "currently supported.";
+      cmSystemTools::Error(e.str().c_str());
+      return false;
+      }
 
     requiresConfigFiles = requiresConfigFiles
                               || te->GetType() != cmTarget::INTERFACE_LIBRARY;
@@ -146,6 +165,10 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
                                   cmGeneratorExpression::InstallInterface,
                                   properties, missingTargets);
     this->PopulateInterfaceProperty("INTERFACE_AUTOUIC_OPTIONS",
+                                  te,
+                                  cmGeneratorExpression::InstallInterface,
+                                  properties, missingTargets);
+    this->PopulateInterfaceProperty("INTERFACE_COMPILE_FEATURES",
                                   te,
                                   cmGeneratorExpression::InstallInterface,
                                   properties, missingTargets);
@@ -194,12 +217,9 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
      << "\n";
 
   // Cleanup the import prefix variable.
-  if(!this->ImportPrefix.empty())
-    {
-    os << "# Cleanup temporary variables.\n"
-       << "set(_IMPORT_PREFIX)\n"
-       << "\n";
-    }
+  os << "# Cleanup temporary variables.\n"
+     << "set(_IMPORT_PREFIX)\n"
+     << "\n";
   this->GenerateImportedFileCheckLoop(os);
 
   bool result = true;
@@ -211,7 +231,7 @@ bool cmExportInstallFileGenerator::GenerateMainFile(std::ostream& os)
           ci = this->Configurations.begin();
         ci != this->Configurations.end(); ++ci)
       {
-      if(!this->GenerateImportFileConfig(ci->c_str(), missingTargets))
+      if(!this->GenerateImportFileConfig(*ci, missingTargets))
         {
         result = false;
         }
@@ -240,7 +260,8 @@ cmExportInstallFileGenerator::ReplaceInstallPrefix(std::string &input)
 
 //----------------------------------------------------------------------------
 bool
-cmExportInstallFileGenerator::GenerateImportFileConfig(const char* config,
+cmExportInstallFileGenerator::GenerateImportFileConfig(
+                                    const std::string& config,
                                     std::vector<std::string> &missingTargets)
 {
   // Skip configurations not enabled for this export.
@@ -254,7 +275,7 @@ cmExportInstallFileGenerator::GenerateImportFileConfig(const char* config,
   fileName += "/";
   fileName += this->FileBase;
   fileName += "-";
-  if(config && *config)
+  if(!config.empty())
     {
     fileName += cmSystemTools::LowerCase(config);
     }
@@ -269,8 +290,8 @@ cmExportInstallFileGenerator::GenerateImportFileConfig(const char* config,
   if(!exportFileStream)
     {
     std::string se = cmSystemTools::GetLastSystemError();
-    cmOStringStream e;
-    e << "cannot write to file \"" << fileName.c_str()
+    std::ostringstream e;
+    e << "cannot write to file \"" << fileName
       << "\": " << se;
     cmSystemTools::Error(e.str().c_str());
     return false;
@@ -296,7 +317,8 @@ cmExportInstallFileGenerator::GenerateImportFileConfig(const char* config,
 void
 cmExportInstallFileGenerator
 ::GenerateImportTargetsConfig(std::ostream& os,
-                              const char* config, std::string const& suffix,
+                              const std::string& config,
+                              std::string const& suffix,
                               std::vector<std::string> &missingTargets)
 {
   // Add each target in the set to the export.
@@ -355,7 +377,8 @@ cmExportInstallFileGenerator
 //----------------------------------------------------------------------------
 void
 cmExportInstallFileGenerator
-::SetImportLocationProperty(const char* config, std::string const& suffix,
+::SetImportLocationProperty(const std::string& config,
+                            std::string const& suffix,
                             cmInstallTargetGenerator* itgen,
                             ImportPropertyMap& properties,
                             std::set<std::string>& importedLocations
@@ -376,11 +399,7 @@ cmExportInstallFileGenerator
   if(!cmSystemTools::FileIsFullPath(dest.c_str()))
     {
     // The target is installed relative to the installation prefix.
-    if(this->ImportPrefix.empty())
-      {
-      this->ComplainAboutImportPrefix(itgen);
-      }
-    value = this->ImportPrefix;
+    value = "${_IMPORT_PREFIX}/";
     }
   value += dest;
   value += "/";
@@ -490,24 +509,6 @@ cmExportInstallFileGenerator
   return namespaces;
 }
 
-
-//----------------------------------------------------------------------------
-void
-cmExportInstallFileGenerator
-::ComplainAboutImportPrefix(cmInstallTargetGenerator* itgen)
-{
-  const char* installDest = this->IEGen->GetDestination();
-  cmOStringStream e;
-  e << "install(EXPORT \""
-    << this->IEGen->GetExportSet()->GetName()
-    << "\") given absolute "
-    << "DESTINATION \"" << installDest << "\" but the export "
-    << "references an installation of target \""
-    << itgen->GetTarget()->GetName() << "\" which has relative "
-    << "DESTINATION \"" << itgen->GetDestination() << "\".";
-  cmSystemTools::Error(e.str().c_str());
-}
-
 //----------------------------------------------------------------------------
 void
 cmExportInstallFileGenerator
@@ -515,7 +516,7 @@ cmExportInstallFileGenerator
                              cmTarget* dependee,
                              int occurrences)
 {
-  cmOStringStream e;
+  std::ostringstream e;
   e << "install(EXPORT \""
     << this->IEGen->GetExportSet()->GetName()
     << "\" ...) "

@@ -13,6 +13,10 @@
 #include "cmGeneratorExpressionEvaluationFile.h"
 
 #include "cmMakefile.h"
+#include "cmLocalGenerator.h"
+#include "cmGlobalGenerator.h"
+#include "cmSourceFile.h"
+#include "cmGeneratedFileStream.h"
 #include <cmsys/FStream.hxx>
 
 #include <assert.h>
@@ -33,9 +37,9 @@ cmGeneratorExpressionEvaluationFile::cmGeneratorExpressionEvaluationFile(
 }
 
 //----------------------------------------------------------------------------
-void cmGeneratorExpressionEvaluationFile::Generate(const char *config,
+void cmGeneratorExpressionEvaluationFile::Generate(const std::string& config,
               cmCompiledGeneratorExpression* inputExpression,
-              std::map<std::string, std::string> &outputFiles)
+              std::map<std::string, std::string> &outputFiles, mode_t perm)
 {
   std::string rawCondition = this->Condition->GetInput();
   if (!rawCondition.empty())
@@ -47,10 +51,10 @@ void cmGeneratorExpressionEvaluationFile::Generate(const char *config,
       }
     if (condResult != "1")
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "Evaluation file condition \"" << rawCondition << "\" did "
           "not evaluate to valid content. Got \"" << condResult << "\".";
-      this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str().c_str());
+      this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str());
       return;
       }
     }
@@ -69,34 +73,44 @@ void cmGeneratorExpressionEvaluationFile::Generate(const char *config,
       {
       return;
       }
-    cmOStringStream e;
+    std::ostringstream e;
     e << "Evaluation file to be written multiple times for different "
          "configurations with different content:\n  " << outputFileName;
-    this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str().c_str());
+    this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str());
     return;
     }
 
+  this->Makefile->AddCMakeOutputFile(outputFileName.c_str());
   this->Files.push_back(outputFileName);
   outputFiles[outputFileName] = outputContent;
 
-  cmsys::ofstream fout(outputFileName.c_str());
-
-  if(!fout)
-    {
-    cmOStringStream e;
-    e << "Evaluation file \"" << outputFileName << "\" cannot be written.";
-    this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str().c_str());
-    return;
-    }
-
+  cmGeneratedFileStream fout(outputFileName.c_str());
+  fout.SetCopyIfDifferent(true);
   fout << outputContent;
+  if (fout.Close() && perm)
+    {
+    cmSystemTools::SetPermissions(outputFileName.c_str(), perm);
+    }
+}
 
-  fout.close();
+//----------------------------------------------------------------------------
+void cmGeneratorExpressionEvaluationFile::CreateOutputFile(
+                                              std::string const& config)
+{
+  std::string name = this->OutputFileExpr->Evaluate(this->Makefile, config);
+  cmSourceFile* sf = this->Makefile->GetOrCreateSource(name);
+  sf->SetProperty("GENERATED", "1");
+
+  cmGlobalGenerator *gg
+                  = this->Makefile->GetLocalGenerator()->GetGlobalGenerator();
+  gg->SetFilenameTargetDepends(sf,
+                          this->OutputFileExpr->GetSourceSensitiveTargets());
 }
 
 //----------------------------------------------------------------------------
 void cmGeneratorExpressionEvaluationFile::Generate()
 {
+  mode_t perm = 0;
   std::string inputContent;
   if (this->InputIsContent)
     {
@@ -104,12 +118,14 @@ void cmGeneratorExpressionEvaluationFile::Generate()
     }
   else
     {
+    this->Makefile->AddCMakeDependFile(this->Input.c_str());
+    cmSystemTools::GetPermissions(this->Input.c_str(), perm);
     cmsys::ifstream fin(this->Input.c_str());
     if(!fin)
       {
-      cmOStringStream e;
+      std::ostringstream e;
       e << "Evaluation file \"" << this->Input << "\" cannot be read.";
-      this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str().c_str());
+      this->Makefile->IssueMessage(cmake::FATAL_ERROR, e.str());
       return;
       }
 
@@ -124,7 +140,7 @@ void cmGeneratorExpressionEvaluationFile::Generate()
     }
 
   cmListFileBacktrace lfbt = this->OutputFileExpr->GetBacktrace();
-  cmGeneratorExpression contentGE(lfbt);
+  cmGeneratorExpression contentGE(&lfbt);
   cmsys::auto_ptr<cmCompiledGeneratorExpression> inputExpression
                                               = contentGE.Parse(inputContent);
 
@@ -135,18 +151,15 @@ void cmGeneratorExpressionEvaluationFile::Generate()
 
   if (allConfigs.empty())
     {
-    this->Generate(0, inputExpression.get(), outputFiles);
+    allConfigs.push_back("");
     }
-  else
+  for(std::vector<std::string>::const_iterator li = allConfigs.begin();
+      li != allConfigs.end(); ++li)
     {
-    for(std::vector<std::string>::const_iterator li = allConfigs.begin();
-        li != allConfigs.end(); ++li)
+    this->Generate(*li, inputExpression.get(), outputFiles, perm);
+    if(cmSystemTools::GetFatalErrorOccured())
       {
-      this->Generate(li->c_str(), inputExpression.get(), outputFiles);
-      if(cmSystemTools::GetFatalErrorOccured())
-        {
-        return;
-        }
+      return;
       }
     }
 }

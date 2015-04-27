@@ -33,7 +33,7 @@ bool cmGetCMakePropertyCommand
     {
     int cacheonly = 0;
     std::vector<std::string> vars = this->Makefile->GetDefinitions(cacheonly);
-    if (vars.size()>0)
+    if (!vars.empty())
       {
       output = vars[0];
       }
@@ -49,10 +49,10 @@ bool cmGetCMakePropertyCommand
     }
   else if ( args[1] == "COMPONENTS" )
     {
-    const std::set<cmStdString>* components
+    const std::set<std::string>* components
       = this->Makefile->GetLocalGenerator()->GetGlobalGenerator()
         ->GetInstallComponents();
-    std::set<cmStdString>::const_iterator compIt;
+    std::set<std::string>::const_iterator compIt;
     output = "";
     for (compIt = components->begin(); compIt != components->end(); ++compIt)
       {
@@ -66,14 +66,14 @@ bool cmGetCMakePropertyCommand
   else
     {
     const char *prop =
-      this->Makefile->GetCMakeInstance()->GetProperty(args[1].c_str());
+      this->Makefile->GetCMakeInstance()->GetProperty(args[1]);
     if (prop)
       {
       output = prop;
       }
     }
 
-  this->Makefile->AddDefinition(variable.c_str(), output.c_str());
+  this->Makefile->AddDefinition(variable, output.c_str());
 
   return true;
 }

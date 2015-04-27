@@ -11,7 +11,8 @@
 #   SDL_IMAGE_LIBRARIES, the name of the library to link against
 #   SDL_IMAGE_INCLUDE_DIRS, where to find the headers
 #   SDL_IMAGE_FOUND, if false, do not try to link against
-#   SDL_IMAGE_VERSION_STRING - human-readable string containing the version of SDL_image
+#   SDL_IMAGE_VERSION_STRING - human-readable string containing the
+#                              version of SDL_image
 #
 #
 #
@@ -54,7 +55,9 @@ find_path(SDL_IMAGE_INCLUDE_DIR SDL_image.h
   HINTS
     ENV SDLIMAGEDIR
     ENV SDLDIR
-  PATH_SUFFIXES include/SDL include/SDL12 include/SDL11 include
+  PATH_SUFFIXES SDL
+                # path suffixes to search inside ENV{SDLDIR}
+                include/SDL include/SDL12 include/SDL11 include
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)

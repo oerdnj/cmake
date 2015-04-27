@@ -139,3 +139,46 @@ add_custom_target(header_tgt DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dir/header.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable(ninjadep ninjadep.cpp)
 add_dependencies(ninjadep header_tgt)
+
+include(ExternalProject)
+ExternalProject_Add(ExternalBuild
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/External
+  STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/External/Stamp
+  BUILD_ALWAYS 1
+  CMAKE_ARGS
+    -Dexternal_in=${CMAKE_CURRENT_BINARY_DIR}/external.in
+    -Dexternal_out=${CMAKE_CURRENT_BINARY_DIR}/external.out
+  INSTALL_COMMAND ""
+  )
+
+add_custom_command(
+  OUTPUT multi1-out1.txt multi1-out2.txt
+  COMMAND ${CMAKE_COMMAND} -E copy multi1-in.txt multi1-out1.txt
+  COMMAND ${CMAKE_COMMAND} -E copy multi1-in.txt multi1-out2.txt
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/multi1-in.txt
+  )
+add_custom_command(
+  OUTPUT multi1-out2-copy.txt
+  COMMAND ${CMAKE_COMMAND} -E copy multi1-out2.txt multi1-out2-copy.txt
+  DEPENDS multi1-out2.txt
+  )
+add_custom_target(multi1 ALL DEPENDS multi1-out2-copy.txt)
+
+# Test having the first output never created.
+add_custom_command(
+  OUTPUT multi2-dummy.txt multi2-real.txt
+  COMMAND ${CMAKE_COMMAND} -E touch multi2-real.txt
+  )
+set_property(SOURCE multi2-real.txt multi2-dummy.txt PROPERTY SYMBOLIC 1)
+add_custom_target(multi2 ALL DEPENDS multi2-real.txt)
+
+if(TEST_MULTI3)
+  # Test having the second output never created.  Does not work with msbuild.
+  add_custom_command(
+    OUTPUT multi3-real.txt multi3-dummy.txt
+    COMMAND ${CMAKE_COMMAND} -E touch multi3-real.txt
+    )
+  set_property(SOURCE multi3-real.txt multi3-dummy.txt PROPERTY SYMBOLIC 1)
+  add_custom_target(multi3 ALL DEPENDS multi3-real.txt)
+endif()
