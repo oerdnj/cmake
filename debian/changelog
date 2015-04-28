@@ -17,6 +17,7 @@ cmake (3.2.2-1) UNRELEASED; urgency=low
   * Bump Standards-Version to 3.9.6.
   * Fix "Typo in cpack documentation" by adding new patch cpack-doc-typo.patch
     (Closes: #760298)
+  * debian/cmake-data.install: Install new manpage cmake-compile-features.7
 
  -- Mario Lang <mlang@debian.org>  Mon, 27 Apr 2015 22:31:13 +0200
 
