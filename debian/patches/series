@@ -2,8 +2,5 @@ FindBoost_add_-lpthread_#563479.diff
 qt_import_dir_variable.diff
 fix-ftbfs-on-kfreebsd.patch
 FindJNI.cmake.mips.patch
-fix-FindImageMagick-1.diff
-fix-FindImageMagick-2.diff
 fix-hdf5-hl.patch
-FindJNI_ppc64le.diff
-hurd_host_system_processor.diff
+cpack-doc-typo.patch

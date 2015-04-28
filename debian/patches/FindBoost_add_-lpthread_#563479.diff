@@ -7,9 +7,11 @@ Bug: http://cmake.org/Bug/view.php?id=10692
 Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=563479
 Forwarded: http://cmake.org/Bug/file_download.php?file_id=3629&type=bug
 
---- a/Modules/FindBoost.cmake
-+++ b/Modules/FindBoost.cmake
-@@ -409,6 +409,22 @@ function(_Boost_GUESS_COMPILER_PREFIX _r
+Index: cmake/Modules/FindBoost.cmake
+===================================================================
+--- cmake.orig/Modules/FindBoost.cmake
++++ cmake/Modules/FindBoost.cmake
+@@ -447,6 +447,22 @@ function(_Boost_GUESS_COMPILER_PREFIX _r
    set(${_ret} ${_boost_COMPILER} PARENT_SCOPE)
  endfunction()
  
@@ -32,7 +34,7 @@ Forwarded: http://cmake.org/Bug/file_download.php?file_id=3629&type=bug
  #
  # End functions/macros
  #
-@@ -1091,6 +1107,9 @@ if(Boost_FOUND)
+@@ -1177,6 +1193,9 @@ if(Boost_FOUND)
        list(APPEND Boost_LIBRARIES ${Boost_${UPPERCOMPONENT}_LIBRARY})
      endif()
    endforeach()

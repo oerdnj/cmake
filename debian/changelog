@@ -1,3 +1,25 @@
+cmake (3.2.2-1) UNRELEASED; urgency=low
+
+  * New upstream release (Closes: Bug#780704).
+  * Add myself to Uploaders.
+  * Build-Depend on liblzma-dev and libjsoncpp-dev.
+  * Drop patches merged upstream:
+    - fix-FindImageMagick-1.diff
+    - fix-FindImageMagick-2.diff
+    - FindJNI_ppc64le.diff
+    - hurd_host_system_processor.diff
+  * Refresh patches:
+    - FindBoost_add_-lpthread_#563479.diff
+    - FindJNI.cmake.mips.patch
+    - fix-ftbfs-on-kfreebsd.patch
+    - fix-hdf5-hl.patch
+    - qt_import_dir_variable.diff
+  * Bump Standards-Version to 3.9.6.
+  * Fix "Typo in cpack documentation" by adding new patch cpack-doc-typo.patch
+    (Closes: #760298)
+
+ -- Mario Lang <mlang@debian.org>  Mon, 27 Apr 2015 22:31:13 +0200
+
 cmake (3.0.2-1) unstable; urgency=medium
 
   * New upstream release.

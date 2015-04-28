@@ -14,9 +14,11 @@ all places.
 
 [1] https://buildd.debian.org/status/fetch.php?pkg=cmake&arch=kfreebsd-amd64&ver=2.8.12-1&stamp=1383507045
 
---- a/Source/kwsys/SystemInformation.cxx
-+++ b/Source/kwsys/SystemInformation.cxx
-@@ -130,7 +130,7 @@ typedef int siginfo_t;
+Index: cmake/Source/kwsys/SystemInformation.cxx
+===================================================================
+--- cmake.orig/Source/kwsys/SystemInformation.cxx
++++ cmake/Source/kwsys/SystemInformation.cxx
+@@ -125,7 +125,7 @@ typedef int siginfo_t;
  # endif
  #endif
  
