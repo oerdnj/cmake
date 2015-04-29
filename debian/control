@@ -14,11 +14,12 @@ Build-Depends: bash-completion,
                libcurl4-openssl-dev,
                libexpat1-dev,
                libjsoncpp-dev,
+               liblzma-dev,
                libncurses5-dev,
                procps [!hurd-any],
                python-sphinx,
                qtbase5-dev,
-               zlib1g-dev, liblzma-dev
+               zlib1g-dev
 Standards-Version: 3.9.6
 Vcs-Git: git://anonscm.debian.org/collab-maint/cmake.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/cmake.git;a=summary
