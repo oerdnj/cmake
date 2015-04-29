@@ -4,3 +4,4 @@ fix-ftbfs-on-kfreebsd.patch
 FindJNI.cmake.mips.patch
 fix-hdf5-hl.patch
 cpack-doc-typo.patch
+protect-tests-from-makeflags.patch
