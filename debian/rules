@@ -9,6 +9,9 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
     BOOTSTRAP_PARALLEL = --parallel=$(NUMJOBS)
 endif
 
+LAST_CHANGE = $(shell dpkg-parsechangelog -S Date)
+BUILD_DATE = $(shell LC_ALL=C date -u "+%B %d, %Y" -d "$(LAST_CHANGE)")
+
 
 BUILD_FLAGS_FILE = build-flags.cmake
 set_build_flag = echo 'set($(1) $(2) CACHE \
@@ -37,7 +40,7 @@ override_dh_auto_configure: $(BUILD_FLAGS_FILE)
 	rm -rf Build && mkdir -p Build
 	cd Build && ../bootstrap --prefix=/usr --docdir=/share/doc/cmake --mandir=/share/man \
 	                         --init=../$(BUILD_FLAGS_FILE) --system-libs \
-	                         --sphinx-man --sphinx-html \
+	                         --sphinx-man --sphinx-html --sphinx-flags="-D today=\"$(BUILD_DATE)\"" \
 	                         $(BOOTSTRAP_PARALLEL) --verbose
 
 override_dh_auto_test:

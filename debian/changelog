@@ -24,6 +24,9 @@ cmake (3.2.2-1) UNRELEASED; urgency=low
   * Build cmake-qt-gui against Qt 5 again.
   * Add protect-tests-from-makeflags.patch, cherry-picked from upstream.
     - Fixes running the test suite in parallel from dh_auto_test.
+  * Make builds reproducible.
+    - Add custom-sphinx-flags.patch, cherry-picked from upstream.
+    - Pass the date from d/changelog to sphinx.
 
  -- Mario Lang <mlang@debian.org>  Mon, 27 Apr 2015 22:31:13 +0200
 
