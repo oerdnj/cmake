@@ -2,6 +2,7 @@ cmake (3.2.2-1) UNRELEASED; urgency=low
 
   [ Mario Lang ]
   * New upstream release (Closes: Bug#780704).
+    - Fixes version detection in the OpenSSL module. (Closes: #784443)
   * Add myself to Uploaders.
   * Build-Depend on liblzma-dev and libjsoncpp-dev.
   * Drop patches merged upstream:
