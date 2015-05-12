@@ -32,6 +32,8 @@ cmake (3.2.2-1) UNRELEASED; urgency=low
     libcurl4-openssl-dev. (Closes: #785128)
   * Properly detect mipsel as little endian architecture. (Closes: #785126)
     - Add fix-mips-endian.patch
+  * Fix detection of openjdk 8. (Closes: #772631)
+    - Add openjdk-8-detection.patch
 
  -- Mario Lang <mlang@debian.org>  Mon, 27 Apr 2015 22:31:13 +0200
 

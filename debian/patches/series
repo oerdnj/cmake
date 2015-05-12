@@ -7,3 +7,4 @@ cpack-doc-typo.patch
 protect-tests-from-makeflags.patch
 custom-sphinx-flags.patch
 fix-mips-endian.patch
+openjdk-8-detection.patch
