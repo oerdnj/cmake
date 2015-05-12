@@ -6,3 +6,4 @@ fix-hdf5-hl.patch
 cpack-doc-typo.patch
 protect-tests-from-makeflags.patch
 custom-sphinx-flags.patch
+fix-mips-endian.patch
