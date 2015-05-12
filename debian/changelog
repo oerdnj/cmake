@@ -28,6 +28,8 @@ cmake (3.2.2-1) UNRELEASED; urgency=low
   * Make builds reproducible.
     - Add custom-sphinx-flags.patch, cherry-picked from upstream.
     - Pass the date from d/changelog to sphinx.
+  * Add libcurl-ssl-dev as an alternative build-dependency to
+    libcurl4-openssl-dev. (Closes: #785128)
 
  -- Mario Lang <mlang@debian.org>  Mon, 27 Apr 2015 22:31:13 +0200
 
