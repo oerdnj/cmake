@@ -1,7 +1,7 @@
-cmake (3.2.2-1) UNRELEASED; urgency=low
+cmake (3.2.2-1) unstable; urgency=medium
 
   [ Mario Lang ]
-  * New upstream release (Closes: Bug#780704).
+  * New upstream release (Closes: #780704).
     - Fixes version detection in the OpenSSL module. (Closes: #784443)
   * Add myself to Uploaders.
   * Build-Depend on liblzma-dev and libjsoncpp-dev.
@@ -35,7 +35,7 @@ cmake (3.2.2-1) UNRELEASED; urgency=low
   * Fix detection of openjdk 8. (Closes: #772631)
     - Add openjdk-8-detection.patch
 
- -- Mario Lang <mlang@debian.org>  Mon, 27 Apr 2015 22:31:13 +0200
+ -- Felix Geyer <fgeyer@debian.org>  Wed, 13 May 2015 19:02:05 +0200
 
 cmake (3.0.2-1) unstable; urgency=medium
 
