@@ -64,6 +64,6 @@ override_dh_sphinxdoc:
 	dh_sphinxdoc -pcmake-doc
 
 %:
-	dh $@ --with=bash-completion,sphinxdoc --parallel --builddirectory=Build --dbg-package=cmake-dbg
+	dh $@ --with=sphinxdoc --parallel --builddirectory=Build --dbg-package=cmake-dbg
 
 .PHONY: override_dh_auto_configure override_dh_auto_clean
