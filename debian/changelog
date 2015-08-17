@@ -1,5 +1,6 @@
-cmake (3.2.2-3) UNRELEASED; urgency=medium
+cmake (3.3.1-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
   * Move bash_completion from /etc to /usr/share.
     - Stop using dh_bash-completion. It still installs files to /etc and
       dh_install works just fine.
