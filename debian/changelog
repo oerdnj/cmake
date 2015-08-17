@@ -1,6 +1,12 @@
 cmake (3.3.1-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Drop patch that have been applied upstream:
+    - cpack-doc-typo.patch
+    - protect-tests-from-makeflags.patch
+    - custom-sphinx-flags.patch
+    - fix-mips-endian.patch
+    - openjdk-8-detection.patch
   * Move bash_completion from /etc to /usr/share.
     - Stop using dh_bash-completion. It still installs files to /etc and
       dh_install works just fine.
