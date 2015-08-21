@@ -1,7 +1,8 @@
-cmake (3.3.1-1) UNRELEASED; urgency=medium
+cmake (3.3.1-1) experimental; urgency=medium
 
   * New upstream release.
-  * Drop patch that have been applied upstream:
+    - Fixes bashism in Modules/Squish4RunTestCase.sh. (Closes: #772218)
+  * Drop patches that have been applied upstream:
     - cpack-doc-typo.patch
     - protect-tests-from-makeflags.patch
     - custom-sphinx-flags.patch
@@ -11,7 +12,7 @@ cmake (3.3.1-1) UNRELEASED; urgency=medium
     - Stop using dh_bash-completion. It still installs files to /etc and
       dh_install works just fine.
 
- -- Felix Geyer <fgeyer@debian.org>  Sat, 30 May 2015 13:56:37 +0200
+ -- Felix Geyer <fgeyer@debian.org>  Fri, 21 Aug 2015 11:57:13 +0200
 
 cmake (3.2.2-2) unstable; urgency=medium
 
