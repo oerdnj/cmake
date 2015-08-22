@@ -1,8 +1,9 @@
 Source: cmake
 Section: devel
 Priority: optional
-Maintainer: Modestas Vainius <modax@debian.org>
-Uploaders: A. Maitland Bottoms <bottoms@debian.org>,
+Maintainer: Debian CMake Team <pkg-cmake-team@lists.alioth.debian.org>
+Uploaders: Modestas Vainius <modax@debian.org>
+           A. Maitland Bottoms <bottoms@debian.org>,
            Kai Wasserbäch <curan@debian.org>,
            Lisandro Damián Nicanor Pérez Meyer <lisandro@debian.org>,
            Felix Geyer <fgeyer@debian.org>,
