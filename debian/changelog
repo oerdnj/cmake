@@ -2,7 +2,7 @@ cmake (3.3.1-2) UNRELEASED; urgency=medium
 
   * Set the team mailing list as maintainer.
   * Add a stage1 build profile that disables building cmake-qt-gui.
-    (Bug: #738161)
+    (Closes: #738161)
   * Add autopkgtests which run the upstream testsuite against the system cmake.
   * Add support for x32 in FindJNI. (Closes: #792262)
     - FindJNI-Add-support-for-x32-architecture-on-Linux.patch
