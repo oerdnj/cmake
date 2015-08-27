@@ -3,3 +3,4 @@ qt_import_dir_variable.diff
 fix-ftbfs-on-kfreebsd.patch
 FindJNI.cmake.mips.patch
 fix-hdf5-hl.patch
+FindJNI-Add-support-for-x32-architecture-on-Linux.patch
