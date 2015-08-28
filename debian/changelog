@@ -1,4 +1,4 @@
-cmake (3.3.1-2) UNRELEASED; urgency=medium
+cmake (3.3.1-2) experimental; urgency=medium
 
   * Set the team mailing list as maintainer.
   * Add a stage1 build profile that disables building cmake-qt-gui.
@@ -7,7 +7,7 @@ cmake (3.3.1-2) UNRELEASED; urgency=medium
   * Add support for x32 in FindJNI. (Closes: #792262)
     - FindJNI-Add-support-for-x32-architecture-on-Linux.patch
 
- -- Felix Geyer <fgeyer@debian.org>  Sat, 22 Aug 2015 19:09:55 +0200
+ -- Felix Geyer <fgeyer@debian.org>  Fri, 28 Aug 2015 18:41:24 +0200
 
 cmake (3.3.1-1) experimental; urgency=medium
 
