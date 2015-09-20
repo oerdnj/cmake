@@ -4,3 +4,4 @@ fix-ftbfs-on-kfreebsd.patch
 FindJNI.cmake.mips.patch
 fix-hdf5-hl.patch
 FindJNI-Add-support-for-x32-architecture-on-Linux.patch
+Features_Extract_strings_from_test_binary_more_reliably.patch
