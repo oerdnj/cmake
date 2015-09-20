@@ -1,5 +1,6 @@
-cmake (3.3.2-1) UNRELEASED; urgency=medium
+cmake (3.3.2-1) unstable; urgency=medium
 
+  * Upload to unstable.
   * New upstream release.
   * Drop Debian menu entries.
   * Make compiler feature testing more reliable.
@@ -9,7 +10,7 @@ cmake (3.3.2-1) UNRELEASED; urgency=medium
     - FindPkgConfig_remove_variable_dereference.patch
   * Remove inactive uploaders from the list.
 
- -- Felix Geyer <fgeyer@debian.org>  Fri, 04 Sep 2015 17:12:34 +0200
+ -- Felix Geyer <fgeyer@debian.org>  Sun, 20 Sep 2015 21:36:39 +0200
 
 cmake (3.3.1-2) experimental; urgency=medium
 
