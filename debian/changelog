@@ -2,6 +2,8 @@ cmake (3.3.2-2) UNRELEASED; urgency=medium
 
   * Search for Python 3.5 and 3.6. (Closes: #802826)
     - Add FindPython_Add_versions_3.5_and_3.6.patch
+  * Add tighter build-depends on dpkg-dev and debhelper for Build-Profiles
+    support.
 
  -- Felix Geyer <fgeyer@debian.org>  Sat, 07 Nov 2015 18:43:11 +0100
 
