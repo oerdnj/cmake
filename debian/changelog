@@ -10,6 +10,7 @@ cmake (3.4.0-1) UNRELEASED; urgency=medium
     - FindPython_Add_versions_3.5_and_3.6.patch
   * Point watch file to the https URL.
   * Stop hardcoding the major version in cmake-data.install.
+  * Remove upgrade maintainer scripts from before wheezy.
 
  -- Felix Geyer <fgeyer@debian.org>  Tue, 17 Nov 2015 17:29:12 +0100
 
