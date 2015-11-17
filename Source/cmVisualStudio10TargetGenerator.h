@@ -78,6 +78,13 @@ private:
   void WriteMissingFilesWP81();
   void WriteMissingFilesWS80();
   void WriteMissingFilesWS81();
+  void WriteMissingFilesWS10_0();
+  void WritePlatformExtensions();
+  void WriteSinglePlatformExtension(std::string const& extension,
+                                    std::string const& version);
+  void WriteSDKReferences();
+  void WriteSingleSDKReference(std::string const& extension,
+                               std::string const& version);
   void WriteCommonMissingFiles(const std::string& manifestFile);
   void WriteTargetSpecificReferences();
 
@@ -111,6 +118,7 @@ private:
   void AddLibraries(cmComputeLinkInformation& cli,
                     std::vector<std::string>& libVec);
   void WriteLibOptions(std::string const& config);
+  void WriteManifestOptions(std::string const& config);
   void WriteEvents(std::string const& configName);
   void WriteEvent(const char* name,
                   std::vector<cmCustomCommand> const& commands,
@@ -128,6 +136,8 @@ private:
   cmIDEFlagTable const* GetLibFlagTable() const;
   cmIDEFlagTable const* GetLinkFlagTable() const;
   cmIDEFlagTable const* GetMasmFlagTable() const;
+
+  bool ForceOld(const std::string& source) const;
 
 private:
   typedef cmVisualStudioGeneratorOptions Options;
