@@ -1,4 +1,4 @@
-cmake (3.4.0-1) UNRELEASED; urgency=medium
+cmake (3.4.0-1) experimental; urgency=medium
 
   * New upstream release.
   * Drop patches that have been applied upstream:
@@ -12,7 +12,7 @@ cmake (3.4.0-1) UNRELEASED; urgency=medium
   * Stop hardcoding the major version in cmake-data.install.
   * Remove upgrade maintainer scripts from before wheezy.
 
- -- Felix Geyer <fgeyer@debian.org>  Tue, 17 Nov 2015 17:29:12 +0100
+ -- Felix Geyer <fgeyer@debian.org>  Tue, 17 Nov 2015 18:27:32 +0100
 
 cmake (3.3.2-2) unstable; urgency=medium
 
