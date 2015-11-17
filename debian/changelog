@@ -1,3 +1,9 @@
+cmake (3.4.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Felix Geyer <fgeyer@debian.org>  Tue, 17 Nov 2015 17:29:12 +0100
+
 cmake (3.3.2-2) unstable; urgency=medium
 
   * Search for Python 3.5 and 3.6. (Closes: #802826)
