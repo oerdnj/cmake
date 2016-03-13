@@ -4,6 +4,7 @@ cmake (3.5.0-1) UNRELEASED; urgency=medium
     - Fixes fltk_wrap_ui segmentation fault. (Closes: #809535)
   * Pass correct buildsystem to dh_auto_test, fixes FTBFS. (Closes: #818040)
   * Change Vcs-* and Homepage to https URLs.
+  * Migrate to dbgsym debug package.
 
  -- Felix Geyer <fgeyer@debian.org>  Sun, 13 Mar 2016 13:32:32 +0100
 
