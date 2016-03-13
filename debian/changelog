@@ -1,4 +1,4 @@
-cmake (3.5.0-1) UNRELEASED; urgency=medium
+cmake (3.5.0-1) unstable; urgency=medium
 
   * New upstream release.
     - Fixes fltk_wrap_ui segmentation fault. (Closes: #809535)
@@ -6,7 +6,7 @@ cmake (3.5.0-1) UNRELEASED; urgency=medium
   * Change Vcs-* and Homepage to https URLs.
   * Migrate to dbgsym debug package.
 
- -- Felix Geyer <fgeyer@debian.org>  Sun, 13 Mar 2016 13:32:32 +0100
+ -- Felix Geyer <fgeyer@debian.org>  Sun, 13 Mar 2016 15:16:37 +0100
 
 cmake (3.4.1-2) unstable; urgency=medium
 
