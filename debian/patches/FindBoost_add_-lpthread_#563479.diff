@@ -12,7 +12,7 @@ Index: cmake/Modules/FindBoost.cmake
 --- cmake.orig/Modules/FindBoost.cmake
 +++ cmake/Modules/FindBoost.cmake
 @@ -447,6 +447,22 @@ function(_Boost_GUESS_COMPILER_PREFIX _r
-   set(${_ret} ${_boost_COMPILER} PARENT_SCOPE)
+   set(${componentvar} ${_boost_processed_components} PARENT_SCOPE)
  endfunction()
  
 +function(_Boost_consider_adding_pthreads _outvar)
