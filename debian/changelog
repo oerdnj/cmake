@@ -1,6 +1,7 @@
 cmake (3.4.1-3) UNRELEASED; urgency=medium
 
   * Pass correct buildsystem to dh_auto_test, fixes FTBFS. (Closes: #818040)
+  * Change Vcs-* and Homepage to https URLs.
 
  -- Felix Geyer <fgeyer@debian.org>  Sun, 13 Mar 2016 13:32:32 +0100
 
