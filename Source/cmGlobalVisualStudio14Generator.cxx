@@ -76,6 +76,8 @@ public:
     names.push_back(vs14generatorName + std::string(" ARM"));
     names.push_back(vs14generatorName + std::string(" Win64"));
     }
+
+  virtual bool SupportsToolset() const { return true; }
 };
 
 //----------------------------------------------------------------------------
@@ -115,7 +117,7 @@ bool cmGlobalVisualStudio14Generator::InitializeWindows(cmMakefile* mf)
 {
   if (cmHasLiteralPrefix(this->SystemVersion, "10.0"))
     {
-    return this->SelectWindows10SDK(mf);
+    return this->SelectWindows10SDK(mf, false);
     }
   return true;
 }
@@ -143,17 +145,18 @@ bool cmGlobalVisualStudio14Generator::InitializeWindowsStore(cmMakefile* mf)
     }
   if (cmHasLiteralPrefix(this->SystemVersion, "10.0"))
     {
-    return this->SelectWindows10SDK(mf);
+    return this->SelectWindows10SDK(mf, true);
     }
   return true;
 }
 
 //----------------------------------------------------------------------------
-bool cmGlobalVisualStudio14Generator::SelectWindows10SDK(cmMakefile* mf)
+bool cmGlobalVisualStudio14Generator::SelectWindows10SDK(cmMakefile* mf,
+                                                         bool required)
 {
   // Find the default version of the Windows 10 SDK.
   this->WindowsTargetPlatformVersion = this->GetWindows10SDKVersion();
-  if (this->WindowsTargetPlatformVersion.empty())
+  if (required && this->WindowsTargetPlatformVersion.empty())
     {
     std::ostringstream  e;
     e << "Could not find an appropriate version of the Windows 10 SDK"
@@ -229,6 +232,16 @@ cmGlobalVisualStudio14Generator::IsWindowsStoreToolsetInstalled() const
     win10SDK, cmSystemTools::KeyWOW64_32);
 }
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+struct NoWindowsH
+{
+  bool operator()(std::string const& p)
+    {
+    return !cmSystemTools::FileExists(p + "/um/windows.h", true);
+    }
+};
+#endif
+
 //----------------------------------------------------------------------------
 std::string cmGlobalVisualStudio14Generator::GetWindows10SDKVersion()
 {
@@ -252,6 +265,12 @@ std::string cmGlobalVisualStudio14Generator::GetWindows10SDKVersion()
   std::string path = win10Root + "Include/*";
   // Grab the paths of the different SDKs that are installed
   cmSystemTools::GlobDirs(path, sdks);
+
+  // Skip SDKs that do not contain <um/windows.h> because that indicates that
+  // only the UCRT MSIs were installed for them.
+  sdks.erase(std::remove_if(sdks.begin(), sdks.end(), NoWindowsH()),
+             sdks.end());
+
   if (!sdks.empty())
     {
     // Only use the filename, which will be the SDK version.
@@ -261,29 +280,21 @@ std::string cmGlobalVisualStudio14Generator::GetWindows10SDKVersion()
       *i = cmSystemTools::GetFilenameName(*i);
       }
 
-    // Sort the results to make sure we select the most recent one that
-    // has a version less or equal to our version of the operating system
+    // Sort the results to make sure we select the most recent one.
     std::sort(sdks.begin(), sdks.end(), cmSystemTools::VersionCompareGreater);
 
-    // Select a suitable SDK version.
-    if (this->SystemVersion == "10.0")
+    // Look for a SDK exactly matching the requested target version.
+    for (std::vector<std::string>::iterator i = sdks.begin();
+         i != sdks.end(); ++i)
       {
-      // Use the latest Windows 10 SDK since no build version was given.
-      return sdks.at(0);
-      }
-    else
-      {
-      // Find the SDK less or equal to our specified version
-      for (std::vector<std::string>::iterator i = sdks.begin();
-           i != sdks.end(); ++i)
+      if (cmSystemTools::VersionCompareEqual(*i, this->SystemVersion))
         {
-        if (!cmSystemTools::VersionCompareGreater(*i, this->SystemVersion))
-          {
-          // This is the most recent SDK that we can run safely
-          return *i;
-          }
+        return *i;
         }
       }
+
+    // Use the latest Windows 10 SDK since the exact version is not available.
+    return sdks.at(0);
     }
 #endif
   // Return an empty string
