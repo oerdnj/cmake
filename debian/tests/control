@@ -1,7 +1,7 @@
 Tests: testsuite
 Restrictions: allow-stderr
-Depends: cmake, @builddeps@
+Depends: cmake, cvs, @builddeps@
 
 Tests: testsuite-ninja
 Restrictions: allow-stderr
-Depends: cmake, ninja-build, @builddeps@
+Depends: cmake, cvs, ninja-build, @builddeps@
