@@ -1,9 +1,9 @@
-cmake (3.5.2-1) UNRELEASED; urgency=medium
+cmake (3.5.2-1) unstable; urgency=medium
 
   * New upstream release.
   * Add cvs to autopkgtest Depends. (Closes: #819775)
 
- -- Felix Geyer <fgeyer@debian.org>  Fri, 22 Apr 2016 19:59:10 +0200
+ -- Felix Geyer <fgeyer@debian.org>  Fri, 22 Apr 2016 21:11:37 +0200
 
 cmake (3.5.1-1) unstable; urgency=medium
 
